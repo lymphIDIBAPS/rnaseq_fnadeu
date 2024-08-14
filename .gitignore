@@ -1,3 +1,5 @@
 # Settings for VSCode
-
 .vscode
+
+# Directory of snakemake utils
+.snakemake/
