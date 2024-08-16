@@ -1,0 +1,42 @@
+### RNA-seq pipeline (script 1)
+### Arguments
+
+arguments:
+  # Path to folder reference_data_and_pipelines
+  pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
+
+  # "Path to RunInfo.txt containing Sample; Seq; Fastq1\Fastq2; TranscriptionStrand... plus additional metadata
+  infoRun: ""
+
+  # Working directory
+  workDir: "/slgpfs/projects/cli79/"
+
+  # Perform T-trimming
+  tTrimming: "no"
+
+  # Adapters to be removed. Choices: illumina or bioskryb; default = illumina
+  adapters: "illumina"
+
+  # Maximum execution time (in hours)
+  time: "72"
+
+  # Analysis name
+  analysisName: ""
+
+  # Remove intermediate fastqs
+  removeFastqs: "yes"
+
+  # Remove bam files after QC (yes or no, default = yes)
+  removeBams: "yes"
+
+  # rRNA database for sortmerna (fast or sensitive or default, default = default)
+  sortmernaDB: "default"
+
+  # Index file for kallisto including only cDNA, ncRNA, or both (cDNA or ncRNA or both, default = cDNA)
+  genes: "cDNA"
+
+  # Should BAM file be created and QC metrics analyzed? (yes or no, default = yes)
+  runQC: "yes"
+
+  # Number of cpus per job (default = 20)
+  cpus: "20"
