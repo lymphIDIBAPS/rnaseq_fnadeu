@@ -1,18 +1,12 @@
 import argparse
 import os
+import yaml
 import subprocess
 import time
-import yaml
 
-# Import other snakefiles
-include: "rules/pipeline_fastq_RNAseq_1.smk"
-
-
-# Open the config file to load options
 with open("config/config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-# Starting time
 date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
 
 # Get current directory
@@ -23,10 +17,14 @@ aName = "_" + config["arguments"]["analysisName"] if config["arguments"]["analys
 outDir = config["arguments"]["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
 os.makedirs(outDir)
 
-rule all:
-    input:
-        directory(outDir)
-    shell:
-        """
-        echo "I just run subrules!"
-        """
+# Create subfolders
+os.makedirs(outDir+"/log")
+os.makedirs(outDir+"/FASTQ")
+os.makedirs(outDir+"/FASTQ_SORTMERNA")
+os.makedirs(outDir+"/FASTQ_TRIMMED")
+os.makedirs(outDir+"/BAM")
+os.makedirs(outDir+"/KALLISTO")
+os.makedirs(outDir+"/MULTIQC_FASTQC")
+os.makedirs(outDir+"/MULTIQC_FASTQC/files")
+os.makedirs(outDir+"/MULTIQC")
+os.makedirs(outDir+"/MULTIQC/files")

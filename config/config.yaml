@@ -9,7 +9,7 @@ arguments:
   infoRun: ""
 
   # Working directory
-  workDir: "/slgpfs/projects/cli79/"
+  workDir: "/home/oscar/RNAseq_ferran"
 
   # Perform T-trimming
   tTrimming: "no"
@@ -21,7 +21,7 @@ arguments:
   time: "72"
 
   # Analysis name
-  analysisName: ""
+  analysisName: "TEST"
 
   # Remove intermediate fastqs
   removeFastqs: "yes"

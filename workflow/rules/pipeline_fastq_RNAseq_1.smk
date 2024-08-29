@@ -4,15 +4,17 @@ import argparse
 import os
 import subprocess
 import time
-
+import yaml
 
 
 
 rule create_folders:
     input:
         ## Some input
+        "resources/start.txt"
     output:
         ## The newly created directories
+        directory(outDir)
     run:
         # Starting time
         date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
