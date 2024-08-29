@@ -7,10 +7,11 @@ import yaml
 # Import other snakefiles
 include: "rules/pipeline_fastq_RNAseq_1.smk"
 
+
 rule all:
     input:
-        "resources/end.txt",
-        "resources/MULTIQC_end.txt"
+        "resources/create_folders.txt",
+        f"resources/{date_str}_MULTIQC_end.txt",
     shell:
         """
         echo "I just run subrules!"

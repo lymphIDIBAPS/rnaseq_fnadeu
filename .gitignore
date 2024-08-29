@@ -3,3 +3,6 @@
 
 # Directory of snakemake utils
 .snakemake/
+
+# Files declaring the end of some rules
+/resources/*.txt

@@ -6,6 +6,9 @@ import subprocess
 import time
 import yaml
 
+# Set date for all rules
+date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
+
 # Open configfile to access arguments:
 configfile: "config/config.yaml"
 
@@ -15,15 +18,11 @@ rule create_folders:
         "resources/start.txt"
     output:
         ## The newly created directories
-        # directory(outDir)
-        "resources/end.txt"
+        "resources/create_folders.txt"
     run:
         # Open the config file to load options
         with open("config/config.yaml", "r") as file:
             config = yaml.safe_load(file)
-        
-        # Starting time
-        date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
 
         # Get current directory
         currentDir = os.getcwd()
@@ -45,8 +44,8 @@ rule create_folders:
         os.makedirs(outDir+"/MULTIQC")
         os.makedirs(outDir+"/MULTIQC/files")
 
-        # Create end.txt
-        fp = open("resources/end.txt", 'w')
+        # Make create_folders.txt
+        fp = open("resources/create_folders.txt", 'w')
         fp.close()
 
 
@@ -61,16 +60,16 @@ rule create_folders:
 
 ##
 ## Summary QC and plots once all previous jobs are done
-## git commit -m "Add rule summary_qc"
+## 
 
 rule summary_qc:
     input:
-        "resources/end.txt"
+        "resources/create_folders.txt"
     output:
-        "resources/MULTIQC_end.txt"
-    run:
-        date_str
-
-        # Create end.txt
-        fp = open("resources/MULTIQC_end.txt", 'w')
-        fp.close()
+        f"resources/{date_str}_MULTIQC_end.txt"
+    shell:
+        """
+        echo {date_str}
+        touch "resources/{date_str}_MULTIQC_end.txt"
+        echo config["workDir"]
+        """
