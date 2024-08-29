@@ -6,11 +6,17 @@ import subprocess
 import time
 import yaml
 
+# Open configfile to access arguments:
+configfile: "config/config.yaml"
+
 # Set date for all rules
 date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
 
-# Open configfile to access arguments:
-configfile: "config/config.yaml"
+# Set name for all rules
+aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
+
+# Set outDir for all rules
+outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
 
 rule create_folders:
     input:
@@ -28,8 +34,7 @@ rule create_folders:
         currentDir = os.getcwd()
 
         # Create output directory
-        aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
-        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
+        # outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
         os.makedirs(outDir)
 
         # Create subfolders
@@ -59,7 +64,7 @@ rule create_folders:
 ## -sortmernaDB "+options.sortmernaDB+" -g "+options.genes+" -qc "+options.runQC+" -@ "+options.cpus
 
 ##
-## Summary QC and plots once all previous jobs are done
+## Summary QC once all previous jobs are done
 ## 
 
 rule summary_qc:
@@ -71,5 +76,21 @@ rule summary_qc:
         """
         echo {date_str}
         touch "resources/{date_str}_MULTIQC_end.txt"
-        echo config["workDir"]
+        echo {config[workDir]}
+        multiqc -f -i "${date_str}_pipeline_fastq_RNAseq_FASTQC${aName}" -b 'Multiqc report for RNAseq pipeline (FASTQC)' -n "${date_str}_pipeline_fastq_RNAseq_FASTQC${aName}" -o "${outDir}/MULTIQC_FASTQC" "${outDir}/MULTIQC_FASTQC/files"
+        multiqc -f -i "${date_str}_pipeline_fastq_RNAseq_BAM${aName}" -b 'Multiqc report for RNAseq pipeline (BAM)' -n "${date_str}_pipeline_fastq_RNAseq_BAM${aName}" -o "${outDir}/MULTIQC" "${outDir}/MULTIQC/files"
+        """
+
+##
+## Summary plots once all previous jobs are done
+## 
+
+rule plots:
+    input:
+        "/resources/create_folders.txt"
+    output:
+        f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
+    shell:
+        """
+        # Lines 175 and 176 from RNAseq_2
         """

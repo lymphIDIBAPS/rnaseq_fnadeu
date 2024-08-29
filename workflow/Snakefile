@@ -10,7 +10,9 @@ include: "rules/pipeline_fastq_RNAseq_1.smk"
 
 rule all:
     input:
+        # This line calls for the rule create_folders 
         "resources/create_folders.txt",
+        # This line calls for the summary_qc rule
         f"resources/{date_str}_MULTIQC_end.txt",
     shell:
         """
