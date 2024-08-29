@@ -7,25 +7,10 @@ import yaml
 # Import other snakefiles
 include: "rules/pipeline_fastq_RNAseq_1.smk"
 
-
-# Open the config file to load options
-with open("config/config.yaml", "r") as file:
-    config = yaml.safe_load(file)
-
-# Starting time
-date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
-
-# Get current directory
-currentDir = os.getcwd()
-
-# Create output directory
-aName = "_" + config["arguments"]["analysisName"] if config["arguments"]["analysisName"] != "" else ""
-outDir = config["arguments"]["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
-os.makedirs(outDir)
-
 rule all:
     input:
-        directory(outDir)
+        "resources/end.txt",
+        "resources/MULTIQC_end.txt"
     shell:
         """
         echo "I just run subrules!"

@@ -1,42 +1,42 @@
 ### RNA-seq pipeline (script 1)
 ### Arguments
 
-arguments:
-  # Path to folder reference_data_and_pipelines
-  pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
 
-  # "Path to RunInfo.txt containing Sample; Seq; Fastq1\Fastq2; TranscriptionStrand... plus additional metadata
-  infoRun: ""
+# Path to folder reference_data_and_pipelines
+pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
 
-  # Working directory
-  workDir: "/home/oscar/RNAseq_ferran"
+# "Path to RunInfo.txt containing Sample; Seq; Fastq1\Fastq2; TranscriptionStrand... plus additional metadata
+infoRun: ""
 
-  # Perform T-trimming
-  tTrimming: "no"
+# Working directory
+workDir: "/home/oscar/RNAseq_ferran"
 
-  # Adapters to be removed. Choices: illumina or bioskryb; default = illumina
-  adapters: "illumina"
+# Perform T-trimming
+tTrimming: "no"
 
-  # Maximum execution time (in hours)
-  time: "72"
+# Adapters to be removed. Choices: illumina or bioskryb; default = illumina
+adapters: "illumina"
 
-  # Analysis name
-  analysisName: "TEST"
+# Maximum execution time (in hours)
+time: "72"
 
-  # Remove intermediate fastqs
-  removeFastqs: "yes"
+# Analysis name
+analysisName: "TEST"
 
-  # Remove bam files after QC (yes or no, default = yes)
-  removeBams: "yes"
+# Remove intermediate fastqs
+removeFastqs: "yes"
 
-  # rRNA database for sortmerna (fast or sensitive or default, default = default)
-  sortmernaDB: "default"
+# Remove bam files after QC (yes or no, default = yes)
+removeBams: "yes"
 
-  # Index file for kallisto including only cDNA, ncRNA, or both (cDNA or ncRNA or both, default = cDNA)
-  genes: "cDNA"
+# rRNA database for sortmerna (fast or sensitive or default, default = default)
+sortmernaDB: "default"
 
-  # Should BAM file be created and QC metrics analyzed? (yes or no, default = yes)
-  runQC: "yes"
+# Index file for kallisto including only cDNA, ncRNA, or both (cDNA or ncRNA or both, default = cDNA)
+genes: "cDNA"
 
-  # Number of cpus per job (default = 20)
-  cpus: "20"
+# Should BAM file be created and QC metrics analyzed? (yes or no, default = yes)
+runQC: "yes"
+
+# Number of cpus per job (default = 20)
+cpus: "20"
