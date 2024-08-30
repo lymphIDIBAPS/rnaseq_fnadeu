@@ -54,15 +54,6 @@ rule create_folders:
         fp.close()
 
 
-## Now Ferran does the scripting for the cluster, I will do it in a config file for the cluster
-## Prepare and submit job script for each sample
-## The command sent to each job is the following:
-##
-## comm = "python "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_2.py 
-## -p "+options.pathToReferenceDataAndPipelines+" -o "+outDir+" -s "+sample+" -F1 "+fq1+" -F2 "+fq2+" 
-## -TS "+strand+" -tT "+options.tTrimming+" -ad "+options.adapters+" -r "+options.removeFastqs+" -rb "+options.removeBams+" 
-## -sortmernaDB "+options.sortmernaDB+" -g "+options.genes+" -qc "+options.runQC+" -@ "+options.cpus
-
 ##
 ## Summary QC once all previous jobs are done
 ## 
@@ -87,10 +78,12 @@ rule summary_qc:
 
 rule plots:
     input:
-        "/resources/create_folders.txt"
+        "resources/create_folders.txt"
     output:
-        f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
+        # f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
+        f"/resources/{date_str}_plots_made.txt"
     shell:
         """
-        # Lines 175 and 176 from RNAseq_2
+        echo Lines 175 and 176 from RNAseq_1
+        touch "resources/{date_str}_plots_made.txt"
         """

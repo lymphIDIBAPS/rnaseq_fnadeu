@@ -12,8 +12,8 @@ date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
 currentDir = os.getcwd()
 
 # Create output directory
-aName = "_" + config["arguments"]["analysisName"] if config["arguments"]["analysisName"] != "" else ""
-outDir = config["arguments"]["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
+aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
+outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
 os.makedirs(outDir)
 
 # Create subfolders

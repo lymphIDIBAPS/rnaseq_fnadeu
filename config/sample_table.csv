@@ -1,0 +1,7 @@
+"sample_name", "protocol", "file", "fastq", "TranscriptionStrand"
+"human_1", "RNA-seq", "human1_1.fq.gz", "1", "FRW"
+"human_1", "RNA-seq", "human1_2.fq.gz", "2", "REV"
+"human_2", "RNA-seq", "human2_1.fq.gz", "1", "FRW"
+"human_2", "RNA-seq", "human2_2.fq.gz", "2", "REV"
+"human_3", "RNA-seq", "human3_1.fq.gz", "1", "FRW"
+"human_3", "RNA-seq", "human3_2.fq.gz", "2", "REV"
