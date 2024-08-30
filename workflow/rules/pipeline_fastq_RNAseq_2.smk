@@ -48,10 +48,58 @@ outDir = config["workDir"]
 # TranscriptionStrand = options.TranscriptionStrand
 # cpus = options.cpus
 
-rule sortmerna:
-    input:  "config/project_config.yaml"
-    output: "results/{sample}.txt"
+# Load the PEP file
+pep = peppy.Project("config/project_config.yaml")
+
+# Extract sample names and paths to reads
+samples = pep.sample_table
+
+# Function to look up forward and reverse reads
+def get_fastq_paths(wildcards, strand):
+    sample_info = samples.loc[wildcards.sample]
+    return sample_info[strand]
+
+# rule sortmerna:
+#     input:  "config/project_config.yaml"
+#     output: "results/{sample}.txt"
+#     params:
+#         # fastq = samplesheet("TranscriptionStrand")
+#         fastq = lambda wc: lookup_sample_table(sample = wc.sample, target = "TranscriptionStrand")
+#     shell:
+#         """
+#         touch results/{wildcards.sample}.txt
+#         echo {params.fastq}
+#         """
+
+rule sortmerna_GPT:
+    input:
+        config_file="config/project_config.yaml",
+        forw=lambda wc: get_fastq_paths(wc, "forward"),
+        reve=lambda wc: get_fastq_paths(wc, "reverse"),
+    output:
+        "results/{sample}.txt"
     shell:
         """
-        touch results/{wildcards.sample}.txt
+        echo {input.forw} {input.reve}
         """
+    
+# /slgpfs/home/cli84/cli84075/bin/sortmerna \
+# --ref ./sortmernaDB/silva-bac-16s-id90.fasta \
+# --ref ./sortmernaDB/silva-bac-23s-id98.fasta \
+# --ref ./sortmernaDB/silva-arc-16s-id95.fasta \
+# --ref ./sortmernaDB/silva-arc-23s-id98.fasta \
+# --ref ./sortmernaDB/silva-euk-18s-id95.fasta \
+# --ref ./sortmernaDB/silva-euk-28s-id98.fasta \
+# --ref ./sortmernaDB/rfam-5s-database-id98.fasta \
+# --ref ./sortmernaDB/rfam-5.8s-database-id98.fasta \
+# --reads {input.forward} \
+# --reads {input.reverse} \
+# --aligned results/{wildcards.sample}_aligned \
+# --other results/{wildcards.sample}_other \
+# --workdir results/{wildcards.sample}_workdir \
+# --fastx \
+# --paired_in \
+# --threads 16 \
+# --out2 \
+# -v \
+# --idx-dir ./sortmernaDB/index2 > {output}

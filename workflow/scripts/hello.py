@@ -27,3 +27,25 @@ os.makedirs(outDir+"/MULTIQC_FASTQC")
 os.makedirs(outDir+"/MULTIQC_FASTQC/files")
 os.makedirs(outDir+"/MULTIQC")
 os.makedirs(outDir+"/MULTIQC/files")
+
+
+import peppy
+
+
+
+import peppy
+
+# Load the PEP file
+pep = peppy.Project("config/project_config.yaml")
+
+# Extract sample names and paths to reads
+samples = pep.sample_table
+
+# Extract samples paths to reads
+samples2 = pep.sample_table["sample_name"]
+
+# Function to look up forward and reverse reads
+def get_fastq_paths(wildcards, strand):
+    sample_info = samples.loc[wildcards.sample]
+    return sample_info[strand]
+
