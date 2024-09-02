@@ -41,65 +41,32 @@ elif config["genes"] == "ncRNA":
 else: 
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
 
-outDir = config["workDir"]
 # sample = options.sample
 # fastq1 = options.fq1
 # fastq2 = options.fq2
 # TranscriptionStrand = options.TranscriptionStrand
 # cpus = options.cpus
 
-# Load the PEP file
-pep = peppy.Project("config/project_config.yaml")
-
 # Extract sample names and paths to reads
 samples = pep.sample_table
 
-# Function to look up forward and reverse reads
-def get_fastq_paths(wildcards, strand):
-    sample_info = samples.loc[wildcards.sample]
-    return sample_info[strand]
-
-# rule sortmerna:
-#     input:  "config/project_config.yaml"
-#     output: "results/{sample}.txt"
-#     params:
-#         # fastq = samplesheet("TranscriptionStrand")
-#         fastq = lambda wc: lookup_sample_table(sample = wc.sample, target = "TranscriptionStrand")
-#     shell:
-#         """
-#         touch results/{wildcards.sample}.txt
-#         echo {params.fastq}
-#         """
-
-rule sortmerna_GPT:
+rule sortmerna:
     input:
-        config_file="config/project_config.yaml",
-        forw=lambda wc: get_fastq_paths(wc, "forward"),
-        reve=lambda wc: get_fastq_paths(wc, "reverse"),
+        config_file="config/project_config.yaml"
     output:
-        "results/{sample}.txt"
+        "results/{sample}.txt",
+    params:
+        forw = lambda wc: samples.loc[wc.sample]["forward"],
+        reve = lambda wc: samples.loc[wc.sample]["reverse"],
+        sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta",
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
+        cpus = config["cpus"]
     shell:
         """
-        echo {input.forw} {input.reve}
+        mkdir -p results/ {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} {params.outDir}/FASTQ_SORTMERNA/other
+        touch results/{wildcards.sample}.txt
+        cat {params.forw} {params.reve} > results/{wildcards.sample}.txt
+        sortmerna --ref {params.sortmerna_db} --reads {params.forw} --reads {params.reve} --other {params.outDir}/FASTQ_SORTMERNA/other\
+        --workdir {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} --fastx --paired_in -threads {params.cpus} -out2 -v
+        rm -r {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/kvdb
         """
-    
-# /slgpfs/home/cli84/cli84075/bin/sortmerna \
-# --ref ./sortmernaDB/silva-bac-16s-id90.fasta \
-# --ref ./sortmernaDB/silva-bac-23s-id98.fasta \
-# --ref ./sortmernaDB/silva-arc-16s-id95.fasta \
-# --ref ./sortmernaDB/silva-arc-23s-id98.fasta \
-# --ref ./sortmernaDB/silva-euk-18s-id95.fasta \
-# --ref ./sortmernaDB/silva-euk-28s-id98.fasta \
-# --ref ./sortmernaDB/rfam-5s-database-id98.fasta \
-# --ref ./sortmernaDB/rfam-5.8s-database-id98.fasta \
-# --reads {input.forward} \
-# --reads {input.reverse} \
-# --aligned results/{wildcards.sample}_aligned \
-# --other results/{wildcards.sample}_other \
-# --workdir results/{wildcards.sample}_workdir \
-# --fastx \
-# --paired_in \
-# --threads 16 \
-# --out2 \
-# -v \
-# --idx-dir ./sortmernaDB/index2 > {output}

@@ -5,4 +5,10 @@
 .snakemake/
 
 # Files declaring the end of some rules
-/resources/*.txt
+/resources/
+
+# Temporary files in the results folder
+/results
+
+# Results
+/20240902_162657_pipeline_fastq_RNAseq_TEST

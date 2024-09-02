@@ -17,12 +17,13 @@ rule all:
         # This line calls for the rule create_folders 
         "resources/create_folders.txt",
         # This line calls for the summary_qc rule
-        f"resources/{date_str}_MULTIQC_end.txt",
+        # f"resources/{date_str}_MULTIQC_end.txt",
         # This line calls for the plots rule
-        # f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
-        f"/resources/{date_str}_plots_made.txt",
+        ## f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
+        # f"/resources/{date_str}_plots_made.txt",
         # This line calls for the sortmerna rule
-        expand("results/{sample}.txt", sample = pep.sample_table["sample_name"])
+        # expand("results/{sample}.txt", sample = pep.sample_table["sample_name"]),
+        expand("results/{sample}.txt", sample = samples["sample_name"])
     shell:
         """
         echo "I just run subrules!"

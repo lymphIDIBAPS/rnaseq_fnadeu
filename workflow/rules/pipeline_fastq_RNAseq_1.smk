@@ -34,20 +34,20 @@ rule create_folders:
         currentDir = os.getcwd()
 
         # Create output directory
-        # outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
-        os.makedirs(outDir)
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
+        os.makedirs(outDir, exist_ok=True)
 
         # Create subfolders
-        os.makedirs(outDir+"/log")
-        os.makedirs(outDir+"/FASTQ")
-        os.makedirs(outDir+"/FASTQ_SORTMERNA")
-        os.makedirs(outDir+"/FASTQ_TRIMMED")
-        os.makedirs(outDir+"/BAM")
-        os.makedirs(outDir+"/KALLISTO")
-        os.makedirs(outDir+"/MULTIQC_FASTQC")
-        os.makedirs(outDir+"/MULTIQC_FASTQC/files")
-        os.makedirs(outDir+"/MULTIQC")
-        os.makedirs(outDir+"/MULTIQC/files")
+        os.makedirs(outDir+"/log", exist_ok=True)
+        os.makedirs(outDir+"/FASTQ", exist_ok=True)
+        os.makedirs(outDir+"/FASTQ_SORTMERNA", exist_ok=True)
+        os.makedirs(outDir+"/FASTQ_TRIMMED", exist_ok=True)
+        os.makedirs(outDir+"/BAM", exist_ok=True)
+        os.makedirs(outDir+"/KALLISTO", exist_ok=True)
+        os.makedirs(outDir+"/MULTIQC_FASTQC", exist_ok=True)
+        os.makedirs(outDir+"/MULTIQC_FASTQC/files", exist_ok=True)
+        os.makedirs(outDir+"/MULTIQC", exist_ok=True)
+        os.makedirs(outDir+"/MULTIQC/files", exist_ok=True)
 
         # Make create_folders.txt
         fp = open("resources/create_folders.txt", 'w')

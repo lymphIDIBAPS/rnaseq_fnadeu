@@ -3,7 +3,7 @@
 
 
 # Path to folder reference_data_and_pipelines
-pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
+pathToReferenceDataAndPipelines: "resources"
 
 # "Path to RunInfo.txt containing Sample; Seq; Fastq1\Fastq2; TranscriptionStrand... plus additional metadata
 infoRun: ""
@@ -39,4 +39,4 @@ genes: "cDNA"
 runQC: "yes"
 
 # Number of cpus per job (default = 20)
-cpus: "20"
+cpus: "24"

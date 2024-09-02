@@ -28,11 +28,7 @@ os.makedirs(outDir+"/MULTIQC_FASTQC/files")
 os.makedirs(outDir+"/MULTIQC")
 os.makedirs(outDir+"/MULTIQC/files")
 
-
-import peppy
-
-
-
+import pandas as pd
 import peppy
 
 # Load the PEP file
@@ -45,7 +41,27 @@ samples = pep.sample_table
 samples2 = pep.sample_table["sample_name"]
 
 # Function to look up forward and reverse reads
-def get_fastq_paths(wildcards, strand):
-    sample_info = samples.loc[wildcards.sample]
-    return sample_info[strand]
 
+### GPT
+
+# Function to retrieve the correct file based on sample and fastq number
+def get_fastq_file(sample, fastq):
+    # Locate the row based on the sample name
+    sample_row = samples.loc[sample]
+    
+    # Get the index of the desired fastq number
+    try:
+        fastq_index = sample_row['fastq'].index(fastq)
+    except ValueError:
+        raise ValueError(f"Fastq number {fastq} not found for sample {sample}.")
+    
+    # Return the file corresponding to the fastq index
+    return sample_row['file'][fastq_index]
+
+# Example usage:
+file_name = get_fastq_file("human_3", "1")
+print(file_name)
+
+
+forw = get_fastq_file("human_1", "1")
+reve = get_fastq_file("human_1", "2")
