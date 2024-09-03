@@ -52,21 +52,48 @@ samples = pep.sample_table
 
 rule sortmerna:
     input:
-        config_file="config/project_config.yaml"
+        config_file = "config/project_config.yaml"
     output:
-        "results/{sample}.txt",
+        "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_SORTMERNA/{sample}_aligned.log",
     params:
         forw = lambda wc: samples.loc[wc.sample]["forward"],
         reve = lambda wc: samples.loc[wc.sample]["reverse"],
         sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta",
-        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        # outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         cpus = config["cpus"]
     shell:
         """
-        mkdir -p results/ {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} {params.outDir}/FASTQ_SORTMERNA/other
-        touch results/{wildcards.sample}.txt
-        cat {params.forw} {params.reve} > results/{wildcards.sample}.txt
-        sortmerna --ref {params.sortmerna_db} --reads {params.forw} --reads {params.reve} --other {params.outDir}/FASTQ_SORTMERNA/other\
+        mkdir -p {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
+        sortmerna --ref {params.sortmerna_db} --reads {params.forw} --reads {params.reve} --other {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out\
         --workdir {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} --fastx --paired_in -threads {params.cpus} -out2 -v
-        rm -r {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/kvdb
+        mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned_fwd.fq.gz {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_1.fq.gz
+        mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned_rev.fq.gz {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz
+        mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned.log {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_aligned.log
+        rm -rf {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
         """
+
+
+rule multiqc_sortmerna_log:
+    input:
+        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_SORTMERNA/{sample}_aligned.log",
+    output:
+        multiqc_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/MULTIQC/files/{sample}_aligned.log"
+    params:
+        sample = "{sample}",
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
+        fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
+    run:
+        # Define the paths
+        logInput_path = input.aligned_log
+        logSortmerna_path = output.multiqc_log
+
+        # Open input and output log files
+        with open(logInput_path, "r") as logInput, open(logSortmerna_path, "w") as logSortmerna:
+            # Replace file names with sample name in the log file
+            for lLine in logInput:
+                logSortmerna.write(
+                    lLine.replace(params.fastq1.split("/")[-1], params.sample + ".fq.gz")
+                         .replace(params.fastq2.split("/")[-1], params.sample + ".fq.gz")
+                )

@@ -2,6 +2,7 @@ import os
 import yaml
 # import subprocess
 import time
+import peppy
 
 with open("config/config.yaml", "r") as file:
     config = yaml.safe_load(file)
@@ -28,8 +29,7 @@ os.makedirs(outDir+"/MULTIQC_FASTQC/files")
 os.makedirs(outDir+"/MULTIQC")
 os.makedirs(outDir+"/MULTIQC/files")
 
-import pandas as pd
-import peppy
+
 
 # Load the PEP file
 pep = peppy.Project("config/project_config.yaml")
