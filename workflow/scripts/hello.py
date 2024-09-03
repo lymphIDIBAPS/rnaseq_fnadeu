@@ -63,5 +63,20 @@ file_name = get_fastq_file("human_3", "1")
 print(file_name)
 
 
-forw = get_fastq_file("human_1", "1")
+forw = get_fastq_file("paired-end", "1")
 reve = get_fastq_file("human_1", "2")
+
+
+def get_strand_flag(transcription_strand):
+    if transcription_strand == "first":
+        return " --fr-stranded"
+    elif transcription_strand == "second":
+        return " --rf-stranded"
+    else:
+        return ""
+
+
+strand_set = get_strand_flag(samples.loc["paired-end"]["TranscriptionStrand"])
+
+
+# strand = get_strand_flag(samples.loc[samples]["TranscriptionStrand"])

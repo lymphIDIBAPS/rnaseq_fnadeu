@@ -98,8 +98,6 @@ rule multiqc_sortmerna_log:
                          .replace(params.fastq2.split("/")[-1], params.sample + ".fq.gz")
                 )
 
-#####
-#####
 
 def check_trimming(tTrimming):
     return "HEADCROP:1" if tTrimming == "yes" else ""
@@ -156,8 +154,8 @@ rule fastqc:
     output: 
         "{outDir}/MULTIQC_FASTQC/files/{sample}_1_fastqc.html"
     params:
-        fastq1=lambda wildcards: samples.loc[wildcards.sample]["forward"],
-        fastq2=lambda wildcards: samples.loc[wildcards.sample]["reverse"],
+        fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
+        fastq2 = lambda wildcards: samples.loc[wildcards.sample]["reverse"],
         fastq1_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_1.fq.gz",
         fastq2_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz",
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
@@ -169,3 +167,34 @@ rule fastqc:
         fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {params.cpus} {params.fastq1} {params.fastq2} \
         {params.fastq1_sortmerna} {params.fastq2_sortmerna} {params.pairedFile1} {params.pairedFile2}
         """
+
+def get_strand_flag(transcription_strand):
+    if transcription_strand == "first":
+        return " --fr-stranded"
+    elif transcription_strand == "second":
+        return " --rf-stranded"
+    else:
+        return ""
+
+rule kallisto:
+    input:
+        "resources/start.txt"
+    output: 
+        "{outDir}/KALLISTO/{sample}/abundance.h5"
+    params:
+        fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        cpus = config["cpus"],
+        kallisto_ref = "/resources/human_index_standard/index.idx",
+        strand = get_strand_flag(lambda wc: samples.loc[wc.sample]["TranscriptionStrand"]),
+    shell:
+        """
+        echo {params.strand}
+        echo {params.fastq1}
+        """
+
+# mkdir {params.outDir}/KALLISTO/{sample}
+# kallisto quant -t {params.cpus} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} 
+
+# strand = " --rf-stranded" if TranscriptionStrand == "second" else " --fr-stranded" if TranscriptionStrand == "first" else ""
+# bashArguments = "kallisto quant -t "+cpus+" -i "+kallisto_ref+" -o "+outDir+"/KALLISTO/"+sample+" "+pairedFile1+" "+pairedFile2+strand

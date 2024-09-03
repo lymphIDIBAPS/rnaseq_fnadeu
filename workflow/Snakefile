@@ -32,6 +32,8 @@ rule all:
         expand("{outDir}/MULTIQC/files/{sample}-trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
         # This line calls for the fastqc rule:
         expand("{outDir}/MULTIQC_FASTQC/files/{sample}_1_fastqc.html", outDir = outDir, sample = samples["sample_name"]),
+        # This line calls for the kallisto rule:
+        expand("{outDir}/KALLISTO/{sample}/abundance.h5", outDir = outDir, sample = samples["sample_name"])
     shell:
         """
         echo "I just run subrules!"
