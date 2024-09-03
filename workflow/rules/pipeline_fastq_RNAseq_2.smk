@@ -87,13 +87,64 @@ rule multiqc_sortmerna_log:
     run:
         # Define the paths
         logInput_path = input.aligned_log
-        logSortmerna_path = output.multiqc_log
+        logTrimmomatic_path = output.multiqc_log
 
         # Open input and output log files
-        with open(logInput_path, "r") as logInput, open(logSortmerna_path, "w") as logSortmerna:
+        with open(logInput_path, "r") as logInput, open(logTrimmomatic_path, "w") as logSortmerna:
             # Replace file names with sample name in the log file
             for lLine in logInput:
                 logSortmerna.write(
                     lLine.replace(params.fastq1.split("/")[-1], params.sample + ".fq.gz")
                          .replace(params.fastq2.split("/")[-1], params.sample + ".fq.gz")
                 )
+
+#####
+#####
+
+def check_trimming(tTrimming):
+    return "HEADCROP:1" if tTrimming == "yes" else ""
+
+rule trimmomatic:
+    input:
+        config_file = "config/project_config.yaml"
+    output:
+        log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log"
+    params:
+        fastq1=lambda wildcards: samples.loc[wildcards.sample]["forward"],
+        fastq2=lambda wildcards: samples.loc[wildcards.sample]["reverse"],
+        paired1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
+        unpaired1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_unpaired.fastq.gz",
+        paired2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
+        unpaired2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
+        cpus = config["cpus"],
+        adapters = "resources/TruSeq3-PE.fa",  # Default adapter file
+        result = check_trimming(config["tTrimming"])   # Default trimming option
+    shell:
+        """
+        trimmomatic PE -threads {params.cpus} -phred33 {params.fastq1} {params.fastq2} \
+        {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
+        ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
+        """
+
+# java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar
+
+rule multiqc_trimmomatic_log:
+    input:
+        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log",
+    output:
+        multiqc_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/MULTIQC/files/{sample}-trimmomatic.log"
+    params:
+        sample = "{sample}",
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
+        fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
+    run:
+        # Define the paths
+        logInput_path = input.aligned_log
+        logTrimmomatic_path = output.multiqc_log
+
+        # Open input and output log files
+        with open(logInput_path, "r") as logInput, open(logTrimmomatic_path, "w") as logTrimmomatic:
+            # Replace file names with sample name in the log file
+            for lLine in logInput:
+                logTrimmomatic.write(lLine.replace("_sortmerna_1", "").replace("_sortmerna_2", ""))

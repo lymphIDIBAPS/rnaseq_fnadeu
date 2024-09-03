@@ -11,6 +11,7 @@ include: "rules/pipeline_fastq_RNAseq_2.smk"
 # PEP file with info on our project
 pepfile: "config/project_config.yaml"
 
+outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName
 
 rule all:
     input:
@@ -22,9 +23,13 @@ rule all:
         ## f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
         # f"/resources/{date_str}_plots_made.txt",
         # This line calls for the sortmerna rule
-        expand("/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_SORTMERNA/{sample}_aligned.log", sample = samples["sample_name"]),
+        expand("{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log", outDir = outDir, sample = samples["sample_name"]),
         # This line calls for the multiqc_sortmerna_log:
-        expand("{outDir}/MULTIQC/files/{sample}_aligned.log", outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName, sample=samples["sample_name"])
+        expand("{outDir}/MULTIQC/files/{sample}_aligned.log", outDir = outDir, sample=samples["sample_name"]),
+        # This lines call for the trimmomatic rule:
+        expand("{outDir}/FASTQ_TRIMMED/{sample}-trimmomatic.log", outDir = outDir,  sample = samples["sample_name"]),
+        # This line calls for the multiqc_trimmomatic_log:
+        expand("{outDir}/MULTIQC/files/{sample}-trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"
