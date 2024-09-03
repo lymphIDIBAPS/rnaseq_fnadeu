@@ -30,6 +30,8 @@ rule all:
         expand("{outDir}/FASTQ_TRIMMED/{sample}-trimmomatic.log", outDir = outDir,  sample = samples["sample_name"]),
         # This line calls for the multiqc_trimmomatic_log:
         expand("{outDir}/MULTIQC/files/{sample}-trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
+        # This line calls for the fastqc rule:
+        expand("{outDir}/MULTIQC_FASTQC/files/{sample}_1_fastqc.html", outDir = outDir, sample = samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"

@@ -148,3 +148,24 @@ rule multiqc_trimmomatic_log:
             # Replace file names with sample name in the log file
             for lLine in logInput:
                 logTrimmomatic.write(lLine.replace("_sortmerna_1", "").replace("_sortmerna_2", ""))
+
+
+rule fastqc:
+    input: 
+        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log",
+    output: 
+        "{outDir}/MULTIQC_FASTQC/files/{sample}_1_fastqc.html"
+    params:
+        fastq1=lambda wildcards: samples.loc[wildcards.sample]["forward"],
+        fastq2=lambda wildcards: samples.loc[wildcards.sample]["reverse"],
+        fastq1_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_1.fq.gz",
+        fastq2_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz",
+        pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
+        pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        cpus = config["cpus"],
+    shell:
+        """
+        fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {params.cpus} {params.fastq1} {params.fastq2} \
+        {params.fastq1_sortmerna} {params.fastq2_sortmerna} {params.pairedFile1} {params.pairedFile2}
+        """
