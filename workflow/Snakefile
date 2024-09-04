@@ -27,15 +27,15 @@ rule all:
         # This line calls for the multiqc_sortmerna_log:
         # expand("{outDir}/MULTIQC/files/{sample}_aligned.log", outDir = outDir, sample=samples["sample_name"]),
         # # This lines call for the trimmomatic rule:
-        # expand("{outDir}/FASTQ_TRIMMED/{sample}-trimmomatic.log", outDir = outDir,  sample = samples["sample_name"]),
+        # expand("{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log", outDir = outDir,  sample = samples["sample_name"]),
         # # This line calls for the multiqc_trimmomatic_log:
-        # expand("{outDir}/MULTIQC/files/{sample}-trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
+        # expand("{outDir}/MULTIQC/files/{sample}_trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
         # # This line calls for the fastqc rule:
         # expand("{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the kallisto rule:
         # expand("{outDir}/KALLISTO/{sample}_abundance.h5", outDir = outDir, sample = samples["sample_name"])
         # # This line calls for the multiqc_kallisto_log:
-        expand("{outDir}/MULTIQC/files/{sample}-kallisto.log", outDir = outDir, sample=samples["sample_name"]),
+        expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"

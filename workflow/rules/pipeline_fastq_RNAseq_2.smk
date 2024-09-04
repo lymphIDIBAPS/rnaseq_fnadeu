@@ -106,7 +106,7 @@ rule trimmomatic:
     input:
         config_file = "config/project_config.yaml"
     output:
-        log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log"
+        log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}_trimmomatic.log"
     params:
         fastq1=lambda wildcards: samples.loc[wildcards.sample]["forward"],
         fastq2=lambda wildcards: samples.loc[wildcards.sample]["reverse"],
@@ -128,9 +128,9 @@ rule trimmomatic:
 
 rule multiqc_trimmomatic_log:
     input:
-        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log",
+        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}_trimmomatic.log",
     output:
-        multiqc_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/MULTIQC/files/{sample}-trimmomatic.log"
+        multiqc_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/MULTIQC/files/{sample}_trimmomatic.log"
     params:
         sample = "{sample}",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
@@ -150,7 +150,7 @@ rule multiqc_trimmomatic_log:
 
 rule fastqc:
     input: 
-        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log",
+        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}_trimmomatic.log",
     output: 
         "{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html"
     params:
@@ -199,7 +199,7 @@ rule kallisto:
         "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
     output: 
         "{outDir}/KALLISTO/{sample}_abundance.h5",
-        log = "{outDir}/KALLISTO/{sample}-kallisto.log"
+        log = "{outDir}/KALLISTO/{sample}_kallisto.log"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
         transcription_strand = lambda wildcards: samples.loc[wildcards.sample]["TranscriptionStrand"],
@@ -220,13 +220,14 @@ rule kallisto:
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.tsv {params.outDir}/KALLISTO/{wildcards.sample}_abundance.tsv
         mv {params.outDir}/KALLISTO/{wildcards.sample}/run_info.json {params.outDir}/KALLISTO/{wildcards.sample}_run_info.json
+        rm -rf {params.outDir}/KALLISTO/{wildcards.sample}
         """)
 
 rule multiqc_kallisto_log:
     input:
-        kallisto_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO/{sample}-kallisto.log"
+        kallisto_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO/{sample}_kallisto.log"
     output:
-        multiqc_log = "{outDir}/MULTIQC/files/{sample}-kallisto.log"
+        multiqc_log = "{outDir}/MULTIQC/files/{sample}_kallisto.log"
     params:
         sample = "{sample}",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
