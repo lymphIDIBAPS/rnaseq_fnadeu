@@ -64,8 +64,10 @@ print(file_name)
 
 
 forw = get_fastq_file("paired-end", "1")
-reve = get_fastq_file("human_1", "2")
+reve = get_fastq_file("paired-end", "2")
 
+
+# KALLISTO PREPARATIONS
 
 def get_strand_flag(transcription_strand):
     if transcription_strand == "first":
@@ -77,6 +79,3 @@ def get_strand_flag(transcription_strand):
 
 
 strand_set = get_strand_flag(samples.loc["paired-end"]["TranscriptionStrand"])
-
-
-# strand = get_strand_flag(samples.loc[samples]["TranscriptionStrand"])

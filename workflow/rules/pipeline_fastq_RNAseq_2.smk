@@ -176,25 +176,43 @@ def get_strand_flag(transcription_strand):
     else:
         return ""
 
+## kallisto_index: builds an index
+## from a FASTA formatted file of target sequences. Compute intensive rule
+
+rule kallisto_index:
+    input:
+        index_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.fa.gz"
+    output:
+        index_out_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
+    params:
+        threads = config["cpus"],
+    shell:
+        """
+        kallisto index -i {output.index_out_path} --threads={params.threads} {input.index_path}
+        """
+
+
 rule kallisto:
     input:
-        "resources/start.txt"
+        "resources/start.txt",
+        "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
     output: 
         "{outDir}/KALLISTO/{sample}/abundance.h5"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
+        transcription_strand = lambda wildcards: samples.loc[wildcards.sample]["TranscriptionStrand"],
+        pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
+        pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         cpus = config["cpus"],
-        kallisto_ref = "/resources/human_index_standard/index.idx",
-        strand = get_strand_flag(lambda wc: samples.loc[wc.sample]["TranscriptionStrand"]),
-    shell:
-        """
-        echo {params.strand}
-        echo {params.fastq1}
-        """
+        kallisto_ref = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx",
+    run:
+        # Get the strand flag based on the transcription strand
+        strand_flag = get_strand_flag(params.transcription_strand)
+        
+        shell ("""
+        mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
+        touch {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5
+        kallisto quant -t {params.cpus} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} {strand_flag}
+        """)
 
-# mkdir {params.outDir}/KALLISTO/{sample}
-# kallisto quant -t {params.cpus} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} 
-
-# strand = " --rf-stranded" if TranscriptionStrand == "second" else " --fr-stranded" if TranscriptionStrand == "first" else ""
-# bashArguments = "kallisto quant -t "+cpus+" -i "+kallisto_ref+" -o "+outDir+"/KALLISTO/"+sample+" "+pairedFile1+" "+pairedFile2+strand
