@@ -5,5 +5,5 @@ sample_modifiers:
   derive:
     attributes: [forward, reverse]
     sources:
-      FRW: resources/{sample_name}_1.fq.gz
-      REV: resources/{sample_name}_2.fq.gz
+      FRW: resources/{sample_name}_mergedF.fastq.gz
+      REV: resources/{sample_name}_mergedR.fastq.gz

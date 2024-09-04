@@ -79,3 +79,7 @@ def get_strand_flag(transcription_strand):
 
 
 strand_set = get_strand_flag(samples.loc["paired-end"]["TranscriptionStrand"])
+
+
+threads = int(config["cpus"])
+type(threads)

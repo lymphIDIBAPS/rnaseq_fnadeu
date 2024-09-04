@@ -152,7 +152,7 @@ rule fastqc:
     input: 
         aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}-trimmomatic.log",
     output: 
-        "{outDir}/MULTIQC_FASTQC/files/{sample}_1_fastqc.html"
+        "{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
         fastq2 = lambda wildcards: samples.loc[wildcards.sample]["reverse"],
@@ -170,9 +170,9 @@ rule fastqc:
 
 def get_strand_flag(transcription_strand):
     if transcription_strand == "first":
-        return " --fr-stranded"
+        return "--fr-stranded"
     elif transcription_strand == "second":
-        return " --rf-stranded"
+        return "--rf-stranded"
     else:
         return ""
 
@@ -185,19 +185,21 @@ rule kallisto_index:
     output:
         index_out_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
     params:
-        threads = config["cpus"],
+        threads = int(config["cpus"]),
     shell:
         """
-        kallisto index -i {output.index_out_path} --threads={params.threads} {input.index_path}
+        kallisto index -i {output.index_out_path} --threads=24 {input.index_path}
         """
 
 
 rule kallisto:
+    # This rule does not work with the paired-end file samples
     input:
         "resources/start.txt",
         "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
     output: 
-        "{outDir}/KALLISTO/{sample}/abundance.h5"
+        "{outDir}/KALLISTO/{sample}_abundance.h5",
+        log = "{outDir}/KALLISTO/{sample}-kallisto.log"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
         transcription_strand = lambda wildcards: samples.loc[wildcards.sample]["TranscriptionStrand"],
@@ -208,11 +210,35 @@ rule kallisto:
         kallisto_ref = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx",
     run:
         # Get the strand flag based on the transcription strand
+        # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
         strand_flag = get_strand_flag(params.transcription_strand)
         
         shell ("""
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
         touch {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5
-        kallisto quant -t {params.cpus} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} {strand_flag}
+        kallisto quant -t {params.cpus} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} 2> {output.log}
+        mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
+        mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.tsv {params.outDir}/KALLISTO/{wildcards.sample}_abundance.tsv
+        mv {params.outDir}/KALLISTO/{wildcards.sample}/run_info.json {params.outDir}/KALLISTO/{wildcards.sample}_run_info.json
         """)
 
+rule multiqc_kallisto_log:
+    input:
+        kallisto_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO/{sample}-kallisto.log"
+    output:
+        multiqc_log = "{outDir}/MULTIQC/files/{sample}-kallisto.log"
+    params:
+        sample = "{sample}",
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
+        fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
+    run:
+        # Define the paths
+        logInput_path = input.kallisto_log
+        logKallisto_path = output.multiqc_log
+
+        # Open input and output log files
+        with open(logInput_path, "r") as logInput, open(logKallisto_path, "w") as logKallisto:
+            # Replace file names with sample name in the log file
+            for lLine in logInput:
+                logKallisto.write(lLine.replace("_sortmerna_1", "").replace("_sortmerna_2", ""))

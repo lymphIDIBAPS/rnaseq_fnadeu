@@ -1,2 +1,2 @@
 sample_name,protocol,file,fastq,TranscriptionStrand,forward,reverse
-paired-end,RNA-seq,file_here,1,first,FRW,REV
+1M_SRR9336476,RNA-seq,file_here,1,first,FRW,REV
