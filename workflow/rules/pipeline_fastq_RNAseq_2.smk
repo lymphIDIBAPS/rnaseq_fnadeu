@@ -243,3 +243,48 @@ rule multiqc_kallisto_log:
             # Replace file names with sample name in the log file
             for lLine in logInput:
                 logKallisto.write(lLine.replace("_sortmerna_1", "").replace("_sortmerna_2", ""))
+
+
+rule star_genome:
+    # I touch the file start_align.txt
+    input: 
+        "resources/start_align.txt"
+    output: 
+        "resources/STAR/transcriptInfo.tab"
+    params:
+        cpus = config["cpus"],
+        fastaFiles = "resources/STAR/GRCh38.primary_assembly.genome.fa.chr19",
+        gtfFile = "resources/STAR/gencode.v29.primary_assembly.annotation.chr19.gtf",
+        genomeDir = "resources/STAR/"
+    shell:
+        """
+        mkdir -p resources/STAR
+        STAR --runThreadN {params.cpus} --runMode genomeGenerate --genomeDir {params.genomeDir} --genomeFastaFiles {params.fastaFiles} --sjdbGTFfile {params.gtfFile} --genomeSAindexNbases 11
+        """
+
+rule star_map:
+    input:
+        "resources/STAR/transcriptInfo.tab"
+    output: 
+        "{outDir}/BAM/{sample}_Aligned.out.bam"
+    params:
+        pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
+        pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        genomeDir = "resources/STAR",
+        cpus = config["cpus"]
+    shell:
+        """
+        mkdir -p resources/STAR
+        STAR --runThreadN {params.cpus} --genomeDir {params.genomeDir} --readFilesIn {params.pairedFile1} {params.pairedFile2} \
+        --readFilesCommand zcat --outFileNamePrefix {params.outDir}/BAM/{wildcards.sample}_ --outSAMtype BAM Unsorted --twopassMode Basic --outBAMcompression 10
+        """
+# bashArguments = "STAR --runThreadN "+cpus+" --genomeDir "+star_genome+" --readFilesIn "+pairedFile1+" "+pairedFile2+" --readFilesCommand zcat 
+# --outFileNamePrefix "+outDir+"/BAM/"+sample+"_ --outSAMtype BAM Unsorted --twopassMode Basic --outBAMcompression 10" # not used now compared to Romina's code: --outSAMstrandField intronMotif   
+
+
+# rule samtools:
+#     input:
+#         "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/BAM/{sample}_Aligned.out.bam",
+#     output: 
+#     run: 

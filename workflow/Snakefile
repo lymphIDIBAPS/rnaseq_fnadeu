@@ -35,7 +35,11 @@ rule all:
         # # This line calls for the kallisto rule:
         # expand("{outDir}/KALLISTO/{sample}_abundance.h5", outDir = outDir, sample = samples["sample_name"])
         # # This line calls for the multiqc_kallisto_log:
-        expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
+        # expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
+        # # This line calls for the rule star_genome:
+        expand("resources/STAR/transcriptInfo.tab", outDir = outDir, sample=samples["sample_name"]),
+        # #This rule calls for the rule star_map:
+        expand("{outDir}/BAM/{sample}_Aligned.out.bam", outDir = outDir, sample=samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"
