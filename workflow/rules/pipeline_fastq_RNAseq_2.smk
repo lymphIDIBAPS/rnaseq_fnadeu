@@ -288,14 +288,40 @@ rule samtools:
         unsorted_bam = "{outDir}/BAM/{sample}_Aligned.out.bam",
     output:
         sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
-        sorted_bai = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai",
     params:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        cpus = config["cpus"]
+        star_genome = "{outDir}/BAM/{sample}__STARgenome/",
+        star_pass1 = "{outDir}/BAM/{sample}__STARpass1/",
+        log_final_out = "{outDir}/BAM/{sample}_Log.final.out",
+        log_final_multiqc = "{outDir}/MULTIQC/files/{sample}_Log.final.out",
+        cpus = config["cpus"],
     shell:
         """
         samtools sort -@ {params.cpus} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
         samtools index -@ {params.cpus} {output.sorted_bam}
+        rm -rf {params.star_genome} {params.star_pass1}
+        cp {params.log_final_out} {params.log_final_multiqc}
         """
+
 # bashArguments = "samtools sort -@ "+cpus+" -m 3G -o "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam "+outDir+"/BAM/"+sample+"_Aligned.out.bam"
 # bashArguments = "samtools index -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam"
+
+# bashArguments = "rm -rf "+outDir+"/BAM/"+sample+"__STARgenome/; rm -rf "+outDir+"/BAM/"+sample+"__STARpass1/"
+# bashArguments = "cp "+outDir+"/BAM/"+sample+"_Log.final.out "+outDir+"/MULTIQC/files/"+sample+"_Log.final.out"
+
+
+rule generate_md5sum:
+    input:
+        bam = "{outDir}/BAM/{sample}_Aligned.out.bam",
+        sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
+        sorted_bam_bai = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai",
+    output:
+        bam_md5="{outDir}/BAM/{sample}_Aligned.out.bam.md5",
+        sorted_bam_md5="{outDir}/BAM/{sample}_Aligned.out.sorted.bam.md5",
+        sorted_bam_bai_md5="{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai.md5",
+    shell:
+        """
+        md5sum {input.bam} > {output.bam_md5}
+        md5sum {input.sorted_bam} > {output.sorted_bam_md5}
+        md5sum {input.sorted_bam_bai} > {output.sorted_bam_bai_md5}
+        """
