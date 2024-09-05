@@ -283,8 +283,19 @@ rule star_map:
 # --outFileNamePrefix "+outDir+"/BAM/"+sample+"_ --outSAMtype BAM Unsorted --twopassMode Basic --outBAMcompression 10" # not used now compared to Romina's code: --outSAMstrandField intronMotif   
 
 
-# rule samtools:
-#     input:
-#         "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/BAM/{sample}_Aligned.out.bam",
-#     output: 
-#     run: 
+rule samtools:
+    input:
+        unsorted_bam = "{outDir}/BAM/{sample}_Aligned.out.bam",
+    output:
+        sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
+        sorted_bai = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai",
+    params:
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        cpus = config["cpus"]
+    shell:
+        """
+        samtools sort -@ {params.cpus} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
+        samtools index -@ {params.cpus} {output.sorted_bam}
+        """
+# bashArguments = "samtools sort -@ "+cpus+" -m 3G -o "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam "+outDir+"/BAM/"+sample+"_Aligned.out.bam"
+# bashArguments = "samtools index -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam"
