@@ -374,3 +374,25 @@ rule samtools_multiqc:
 # bashArguments = "samtools idxstats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".idxstats"
 # bashArguments = "samtools flagstat -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".flagstat"
 # bashArguments = "samtools stats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".stats"
+
+
+##
+## remove intermediate FASTQ and BAM files
+##
+
+rule remove_fastqs:
+    output:
+        remove_fastqs = "{outDir}/log/{sample}_removed_fastqs.txt"
+    params:
+        fastq1_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_1.fq.gz",
+        fastq2_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz",
+        pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
+        pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
+        unpairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_unpaired.fastq.gz",
+        unpairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
+    shell:
+        """
+        rm {params.fastq1_sortmerna} {params.fastq2_sortmerna}
+        rm {params.pairedFile1} {params.pairedFile2} {params.unpairedFile1} {params.unpairedFile2}
+        touch {output.remove_fastqs}
+        """

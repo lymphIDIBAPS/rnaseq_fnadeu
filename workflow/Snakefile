@@ -46,7 +46,7 @@ rule all:
         expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
         # # This rule calls for the rule collectRNASeqMetrics:
         # expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"])
-        # # This line calls for the rule samtools_idxstats:
+        # # This line calls for the rule samtools_multiqc:
         expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
     shell:
         """
