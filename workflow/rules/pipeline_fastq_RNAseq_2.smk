@@ -354,3 +354,23 @@ rule collectRNASeqMetrics:
         picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
         -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {strand_flag} -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
         """)
+
+rule samtools_multiqc:
+    input:
+        sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
+    output:
+        idxstats = "{outDir}/MULTIQC/files/{sample}.idxstats",
+        flagstat = "{outDir}/MULTIQC/files/{sample}.flagstat",
+        stats = "{outDir}/MULTIQC/files/{sample}.stats",
+    params:
+        cpus = config["cpus"],
+    shell:
+        """
+        samtools idxstats {input.sorted_bam} > {output.idxstats}
+        samtools flagstat -@ {params.cpus} {input.sorted_bam} > {output.flagstat}
+        samtools stats -@ {params.cpus} {input.sorted_bam} > {output.stats}
+        """
+
+# bashArguments = "samtools idxstats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".idxstats"
+# bashArguments = "samtools flagstat -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".flagstat"
+# bashArguments = "samtools stats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".stats"
