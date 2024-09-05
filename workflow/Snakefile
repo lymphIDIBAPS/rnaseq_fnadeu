@@ -43,7 +43,9 @@ rule all:
         # # This rule calls for the rule samtools:
         # expand("{outDir}/BAM/{sample}_Aligned.out.sorted.bam", outDir = outDir, sample=samples["sample_name"]),
         # # This rule calls for the rule generate_md5sum:
-        expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample=samples["sample_name"]),
+        expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
+        # # This rule calls for the rule collectRNASeqMetrics:
+        # expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"])
     shell:
         """
         echo "I just run subrules!"

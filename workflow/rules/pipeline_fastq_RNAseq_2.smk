@@ -316,12 +316,41 @@ rule generate_md5sum:
         sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
         sorted_bam_bai = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai",
     output:
-        bam_md5="{outDir}/BAM/{sample}_Aligned.out.bam.md5",
-        sorted_bam_md5="{outDir}/BAM/{sample}_Aligned.out.sorted.bam.md5",
-        sorted_bam_bai_md5="{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai.md5",
+        bam_md5 = "{outDir}/BAM/{sample}_Aligned.out.bam.md5",
+        sorted_bam_md5 = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.md5",
+        sorted_bam_bai_md5 = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai.md5",
     shell:
         """
         md5sum {input.bam} > {output.bam_md5}
         md5sum {input.sorted_bam} > {output.sorted_bam_md5}
         md5sum {input.sorted_bam_bai} > {output.sorted_bam_bai_md5}
         """
+
+def get_transcription_strand(transcription_strand):
+    if transcription_strand == "first":
+        return "FIRST_READ_TRANSCRIPTION_STRAND"
+    elif transcription_strand == "second":
+        return "SECOND_READ_TRANSCRIPTION_STRAND"
+    else:
+        return "NONE"
+
+
+# This rule fails due to not having the corresponding files
+
+rule collectRNASeqMetrics:
+    output:
+        "{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics"
+    params:
+        transcription_strand = lambda wildcards: samples.loc[wildcards.sample]["TranscriptionStrand"],
+        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        refFlat = "resources/refFlat.txt",
+        ribosomal_intervals = "resources/Homo_sapiens_assembly38_noALT_noHLA_noDecoy_v0_annotation_gencode_v34_rRNA.interval_list"
+    run:
+        # Get the strand flag based on the transcription strand
+        # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
+        strand_flag = get_transcription_strand(params.transcription_strand)
+
+        shell ("""
+        picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
+        -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {strand_flag} -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
+        """)

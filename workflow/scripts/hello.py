@@ -83,3 +83,13 @@ strand_set = get_strand_flag(samples.loc["paired-end"]["TranscriptionStrand"])
 
 threads = int(config["cpus"])
 type(threads)
+
+def get_transcription_strand(transcription_strand):
+    if transcription_strand == "first":
+        return "FIRST_READ_TRANSCRIPTION_STRAND"
+    elif transcription_strand == "second":
+        return "SECOND_READ_TRANSCRIPTION_STRAND"
+    else:
+        return "NONE"
+    
+strand2 = get_transcription_strand(samples.loc["1M_SRR9336476"]["TranscriptionStrand"])
