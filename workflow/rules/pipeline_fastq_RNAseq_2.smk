@@ -33,6 +33,7 @@ star_genome = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13
 refFlat = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.refFlat"
 ribosomal_intervals = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GTF/Homo_sapiens.GRCh38.105.ribosomalIntervals"
 rseqc_bed = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.bed"
+THREADS = int(config["cpus"])
 
 if config["genes"] == "cDNA": 
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.release-105.idx"
@@ -61,12 +62,13 @@ rule sortmerna:
         sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         # outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
-        cpus = config["cpus"]
+    threads:
+        THREADS
     shell:
         """
         mkdir -p {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
         sortmerna --ref {params.sortmerna_db} --reads {params.forw} --reads {params.reve} --other {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out\
-        --workdir {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} --fastx --paired_in -threads {params.cpus} -out2 -v
+        --workdir {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} --fastx --paired_in -threads {threads} -out2 -v
         mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned_fwd.fq.gz {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_1.fq.gz
         mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned_rev.fq.gz {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz
         mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned.log {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_aligned.log
@@ -114,12 +116,13 @@ rule trimmomatic:
         unpaired1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_unpaired.fastq.gz",
         paired2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         unpaired2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
-        cpus = config["cpus"],
         adapters = "resources/TruSeq3-PE.fa",  # Default adapter file
         result = check_trimming(config["tTrimming"])   # Default trimming option
+    threads:
+        THREADS
     shell:
         """
-        trimmomatic PE -threads {params.cpus} -phred33 {params.fastq1} {params.fastq2} \
+        trimmomatic PE -threads {threads} -phred33 {params.fastq1} {params.fastq2} \
         {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
         ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
         """
@@ -161,10 +164,11 @@ rule fastqc:
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        cpus = config["cpus"],
+    threads:
+        THREADS
     shell:
         """
-        fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {params.cpus} {params.fastq1} {params.fastq2} \
+        fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {threads} {params.fastq1} {params.fastq2} \
         {params.fastq1_sortmerna} {params.fastq2_sortmerna} {params.pairedFile1} {params.pairedFile2}
         """
 
@@ -184,11 +188,11 @@ rule kallisto_index:
         index_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.fa.gz"
     output:
         index_out_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
-    params:
-        threads = int(config["cpus"]),
+    threads:
+        THREADS
     shell:
         """
-        kallisto index -i {output.index_out_path} --threads=24 {input.index_path}
+        kallisto index -i {output.index_out_path} --threads={threads} {input.index_path}
         """
 
 
@@ -206,8 +210,9 @@ rule kallisto:
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        cpus = config["cpus"],
         kallisto_ref = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx",
+    threads:
+        THREADS
     run:
         # Get the strand flag based on the transcription strand
         # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
@@ -216,7 +221,7 @@ rule kallisto:
         shell ("""
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
         touch {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5
-        kallisto quant -t {params.cpus} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} 2> {output.log}
+        kallisto quant -t {threads} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} 2> {output.log}
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.tsv {params.outDir}/KALLISTO/{wildcards.sample}_abundance.tsv
         mv {params.outDir}/KALLISTO/{wildcards.sample}/run_info.json {params.outDir}/KALLISTO/{wildcards.sample}_run_info.json
@@ -252,14 +257,15 @@ rule star_genome:
     output: 
         "resources/STAR/transcriptInfo.tab"
     params:
-        cpus = config["cpus"],
         fastaFiles = "resources/STAR/GRCh38.primary_assembly.genome.fa.chr19",
         gtfFile = "resources/STAR/gencode.v29.primary_assembly.annotation.chr19.gtf",
-        genomeDir = "resources/STAR/"
+        genomeDir = "resources/STAR/",
+    threads:
+        THREADS
     shell:
         """
         mkdir -p resources/STAR
-        STAR --runThreadN {params.cpus} --runMode genomeGenerate --genomeDir {params.genomeDir} --genomeFastaFiles {params.fastaFiles} --sjdbGTFfile {params.gtfFile} --genomeSAindexNbases 11
+        STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir {params.genomeDir} --genomeFastaFiles {params.fastaFiles} --sjdbGTFfile {params.gtfFile} --genomeSAindexNbases 11
         """
 
 rule star_map:
@@ -272,11 +278,12 @@ rule star_map:
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         genomeDir = "resources/STAR",
-        cpus = config["cpus"]
+    threads:
+        THREADS
     shell:
         """
         mkdir -p resources/STAR
-        STAR --runThreadN {params.cpus} --genomeDir {params.genomeDir} --readFilesIn {params.pairedFile1} {params.pairedFile2} \
+        STAR --runThreadN {threads} --genomeDir {params.genomeDir} --readFilesIn {params.pairedFile1} {params.pairedFile2} \
         --readFilesCommand zcat --outFileNamePrefix {params.outDir}/BAM/{wildcards.sample}_ --outSAMtype BAM Unsorted --twopassMode Basic --outBAMcompression 10
         """
 # bashArguments = "STAR --runThreadN "+cpus+" --genomeDir "+star_genome+" --readFilesIn "+pairedFile1+" "+pairedFile2+" --readFilesCommand zcat 
@@ -294,11 +301,12 @@ rule samtools:
         star_pass1 = "{outDir}/BAM/{sample}__STARpass1/",
         log_final_out = "{outDir}/BAM/{sample}_Log.final.out",
         log_final_multiqc = "{outDir}/MULTIQC/files/{sample}_Log.final.out",
-        cpus = config["cpus"],
+    threads:
+        THREADS
     shell:
         """
-        samtools sort -@ {params.cpus} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
-        samtools index -@ {params.cpus} {output.sorted_bam}
+        samtools sort -@ {threads} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
+        samtools index -@ {threads} {output.sorted_bam}
         rm -rf {params.star_genome} {params.star_pass1}
         cp {params.log_final_out} {params.log_final_multiqc}
         """
@@ -362,13 +370,13 @@ rule samtools_multiqc:
         idxstats = "{outDir}/MULTIQC/files/{sample}.idxstats",
         flagstat = "{outDir}/MULTIQC/files/{sample}.flagstat",
         stats = "{outDir}/MULTIQC/files/{sample}.stats",
-    params:
-        cpus = config["cpus"],
+    threads:
+        THREADS
     shell:
         """
         samtools idxstats {input.sorted_bam} > {output.idxstats}
-        samtools flagstat -@ {params.cpus} {input.sorted_bam} > {output.flagstat}
-        samtools stats -@ {params.cpus} {input.sorted_bam} > {output.stats}
+        samtools flagstat -@ {threads} {input.sorted_bam} > {output.flagstat}
+        samtools stats -@ {threads} {input.sorted_bam} > {output.stats}
         """
 
 # bashArguments = "samtools idxstats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".idxstats"
@@ -404,9 +412,12 @@ rule remove_bams:
     params:
         aligned_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.bam",
         aligned_sorted_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam",
+    threads:
+        THREADS
     shell:
         """
         echo {params.aligned_bam} {params.aligned_sorted_bam}
         touch {output.remove_bams}
+        echo {threads}
         """
 # bashArguments = "rm "+outDir+"/BAM/"+sample+"_Aligned.out.bam* "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam*"
