@@ -48,6 +48,10 @@ rule all:
         # expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"])
         # # This line calls for the rule samtools_multiqc:
         expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
+        # # This line calls for the rule remove_fastqs:
+        expand("{outDir}/log/{sample}_removed_fastqs.txt", outDir = outDir, sample = samples["sample_name"]),
+        # # This line calls for the rule remove_bams:
+        expand("{outDir}/log/{sample}_removed_bams.txt", outDir = outDir, sample = samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"

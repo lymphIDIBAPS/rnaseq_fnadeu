@@ -392,7 +392,21 @@ rule remove_fastqs:
         unpairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
     shell:
         """
-        rm {params.fastq1_sortmerna} {params.fastq2_sortmerna}
-        rm {params.pairedFile1} {params.pairedFile2} {params.unpairedFile1} {params.unpairedFile2}
+        echo {params.fastq1_sortmerna} {params.fastq2_sortmerna}
+        echo {params.pairedFile1} {params.pairedFile2} {params.unpairedFile1} {params.unpairedFile2}
         touch {output.remove_fastqs}
         """
+
+
+rule remove_bams:
+    output:
+        remove_bams = "{outDir}/log/{sample}_removed_bams.txt"
+    params:
+        aligned_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.bam",
+        aligned_sorted_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam",
+    shell:
+        """
+        echo {params.aligned_bam} {params.aligned_sorted_bam}
+        touch {output.remove_bams}
+        """
+# bashArguments = "rm "+outDir+"/BAM/"+sample+"_Aligned.out.bam* "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam*"
