@@ -68,7 +68,7 @@ rule sortmerna:
         """
         mkdir -p {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
         sortmerna --ref {params.sortmerna_db} --reads {params.forw} --reads {params.reve} --other {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out\
-        --workdir {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} --fastx --paired_in -threads {threads} -out2 -v
+        --workdir {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample} --fastx --paired_in -threads {threads} -out2 -v 
         mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned_fwd.fq.gz {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_1.fq.gz
         mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned_rev.fq.gz {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz
         mv {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}/out/aligned.log {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}_aligned.log
@@ -280,6 +280,8 @@ rule star_map:
         genomeDir = "resources/STAR",
     threads:
         THREADS
+    # log:
+    #     "{outDir}/BAM/{sample}_Log.out"
     shell:
         """
         mkdir -p resources/STAR
@@ -421,3 +423,5 @@ rule remove_bams:
         echo {threads}
         """
 # bashArguments = "rm "+outDir+"/BAM/"+sample+"_Aligned.out.bam* "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam*"
+
+### DONE WITH RNAseq_2.py

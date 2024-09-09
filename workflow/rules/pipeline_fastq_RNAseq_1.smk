@@ -10,13 +10,18 @@ import yaml
 configfile: "config/config.yaml"
 
 # Set date for all rules
-date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
+# date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
+date_str = "20240902_162657"
 
 # Set name for all rules
 aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
 
 # Set outDir for all rules
 outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
+
+# Set path to reference Data and pipelines
+# pathToReferenceDataAndPipelines = config["pathToReferenceDataAndPipelines"]
+pathToReferenceDataAndPipelines = "workflow/scripts/"
 
 rule create_folders:
     input:
@@ -67,14 +72,15 @@ rule summary_qc:
         """
         echo {date_str}
         touch "resources/{date_str}_MULTIQC_end.txt"
-        echo {config[workDir]}
-        multiqc -f -i "${date_str}_pipeline_fastq_RNAseq_FASTQC${aName}" -b 'Multiqc report for RNAseq pipeline (FASTQC)' -n "${date_str}_pipeline_fastq_RNAseq_FASTQC${aName}" -o "${outDir}/MULTIQC_FASTQC" "${outDir}/MULTIQC_FASTQC/files"
-        multiqc -f -i "${date_str}_pipeline_fastq_RNAseq_BAM${aName}" -b 'Multiqc report for RNAseq pipeline (BAM)' -n "${date_str}_pipeline_fastq_RNAseq_BAM${aName}" -o "${outDir}/MULTIQC" "${outDir}/MULTIQC/files"
+        multiqc -f -i "{date_str}_pipeline_fastq_RNAseq_FASTQC{aName}" -b 'Multiqc report for RNAseq pipeline (FASTQC)' -n "{date_str}_pipeline_fastq_RNAseq_FASTQC{aName}" -o "{outDir}/MULTIQC_FASTQC" "{outDir}/MULTIQC_FASTQC/files"
+        multiqc -f -i "{date_str}_pipeline_fastq_RNAseq_BAM{aName}" -b 'Multiqc report for RNAseq pipeline (BAM)' -n "{date_str}_pipeline_fastq_RNAseq_BAM{aName}" -o "{outDir}/MULTIQC" "{outDir}/MULTIQC/files"
         """
 
 ##
 ## Summary plots once all previous jobs are done
-## 
+##
+
+ensemblTable = pathToReferenceDataAndPipelines + "genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38_genes_transcripts_release-105.txt"
 
 rule plots:
     input:
@@ -85,5 +91,9 @@ rule plots:
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
+        echo {pathToReferenceDataAndPipelines} {ensemblTable}
         touch "resources/{date_str}_plots_made.txt"
+        Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_3.R {ensemblTable}
         """
+
+# "Rscript --vanilla "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_3.R "+ensemblTable+" "+options.infoRun+" "+outDir+"/KALLISTO "+outDir+"/MULTIQC/"+date_str+"_pipeline_fastq_RNAseq_PCAs.pdf"

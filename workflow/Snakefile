@@ -11,6 +11,7 @@ include: "rules/pipeline_fastq_RNAseq_2.smk"
 # PEP file with info on our project
 pepfile: "config/project_config.yaml"
 
+
 outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName
 
 rule all:
@@ -18,7 +19,7 @@ rule all:
         # # This line calls for the rule create_folders
         # "resources/create_folders.txt",
         # # This line calls for the summary_qc rule
-        # f"resources/{date_str}_MULTIQC_end.txt",
+        f"resources/{date_str}_MULTIQC_end.txt",
         # # This line calls for the plots rule
         # # f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
         # f"/resources/{date_str}_plots_made.txt",
@@ -43,15 +44,15 @@ rule all:
         # # This rule calls for the rule samtools:
         # expand("{outDir}/BAM/{sample}_Aligned.out.sorted.bam", outDir = outDir, sample=samples["sample_name"]),
         # # This rule calls for the rule generate_md5sum:
-        expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
+        # expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
         # # This rule calls for the rule collectRNASeqMetrics:
         # expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"])
         # # This line calls for the rule samtools_multiqc:
-        expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
+        # expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the rule remove_fastqs:
-        expand("{outDir}/log/{sample}_removed_fastqs.txt", outDir = outDir, sample = samples["sample_name"]),
+        # expand("{outDir}/log/{sample}_removed_fastqs.txt", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the rule remove_bams:
-        expand("{outDir}/log/{sample}_removed_bams.txt", outDir = outDir, sample = samples["sample_name"]),
+        # expand("{outDir}/log/{sample}_removed_bams.txt", outDir = outDir, sample = samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"
