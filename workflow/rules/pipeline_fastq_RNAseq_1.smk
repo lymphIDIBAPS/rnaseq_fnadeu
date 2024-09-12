@@ -91,9 +91,9 @@ rule plots:
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
-        echo {pathToReferenceDataAndPipelines} {ensemblTable}
-        touch "resources/{date_str}_plots_made.txt"
-        Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_3.R {ensemblTable} 
+        echo {ensemblTable}
+        touch resources/{date_str}_plots_made.txt
+        echo Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_3.R {ensemblTable} 
         """
 
 # "Rscript --vanilla "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_3.R "+ensemblTable+" "+options.infoRun+" "+outDir+"/KALLISTO "+outDir+"/MULTIQC/"+date_str+"_pipeline_fastq_RNAseq_PCAs.pdf"
