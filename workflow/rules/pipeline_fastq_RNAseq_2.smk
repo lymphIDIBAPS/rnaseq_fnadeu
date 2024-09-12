@@ -42,14 +42,33 @@ elif config["genes"] == "ncRNA":
 else: 
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
 
-# sample = options.sample
-# fastq1 = options.fq1
-# fastq2 = options.fq2
-# TranscriptionStrand = options.TranscriptionStrand
-# cpus = options.cpus
+
+# Functions to extract flag values
+
+def check_trimming(tTrimming):
+    return "HEADCROP:1" if tTrimming == "yes" else ""
+
+def get_strand_flag(transcription_strand):
+    if transcription_strand == "first":
+        return "--fr-stranded"
+    elif transcription_strand == "second":
+        return "--rf-stranded"
+    else:
+        return ""
+
+def get_transcription_strand(transcription_strand):
+    if transcription_strand == "first":
+        return "FIRST_READ_TRANSCRIPTION_STRAND"
+    elif transcription_strand == "second":
+        return "SECOND_READ_TRANSCRIPTION_STRAND"
+    else:
+        return "NONE"
 
 # Extract sample names and paths to reads
 samples = pep.sample_table
+
+
+# Pipeline Rules
 
 rule sortmerna:
     input:
@@ -99,10 +118,6 @@ rule multiqc_sortmerna_log:
                     lLine.replace(params.fastq1.split("/")[-1], params.sample + ".fq.gz")
                          .replace(params.fastq2.split("/")[-1], params.sample + ".fq.gz")
                 )
-
-
-def check_trimming(tTrimming):
-    return "HEADCROP:1" if tTrimming == "yes" else ""
 
 rule trimmomatic:
     input:
@@ -172,13 +187,6 @@ rule fastqc:
         {params.fastq1_sortmerna} {params.fastq2_sortmerna} {params.pairedFile1} {params.pairedFile2}
         """
 
-def get_strand_flag(transcription_strand):
-    if transcription_strand == "first":
-        return "--fr-stranded"
-    elif transcription_strand == "second":
-        return "--rf-stranded"
-    else:
-        return ""
 
 ## kallisto_index: builds an index
 ## from a FASTA formatted file of target sequences. Compute intensive rule
@@ -336,18 +344,10 @@ rule generate_md5sum:
         md5sum {input.sorted_bam_bai} > {output.sorted_bam_bai_md5}
         """
 
-def get_transcription_strand(transcription_strand):
-    if transcription_strand == "first":
-        return "FIRST_READ_TRANSCRIPTION_STRAND"
-    elif transcription_strand == "second":
-        return "SECOND_READ_TRANSCRIPTION_STRAND"
-    else:
-        return "NONE"
 
-
-# This rule fails due to not having the corresponding files
 
 rule collectRNASeqMetrics:
+    # This rule fails due to not having the corresponding files
     output:
         "{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics"
     params:
