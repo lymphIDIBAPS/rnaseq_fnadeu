@@ -6,6 +6,7 @@ library("reshape2")
 library("tximportData")
 library("readr")
 
+setwd("~/RNAseq_ferran")
 
 dir <- system.file("extdata", package = "tximportData")
 list.files(dir)
@@ -17,6 +18,7 @@ samples
 
 files <- file.path(dir, "kallisto", samples$run, "abundance.tsv.gz")
 names(files) <- paste0("sample", 1:6)
+files
 
 
 tx2gene <- read_csv(file.path(dir, "tx2gene.gencode.v27.csv"))
@@ -44,7 +46,7 @@ colnames(vsd) <- colData(dds)[,c("condition")]
 # PCA
 pca <- prcomp(t(vsd), scale=T)
 x <- summary(pca)
-pcaTable <- cbind(sample_table, pca$x[,1:2])
+pcaTable <- cbind(txi.kallisto.tsv, pca$x[,1:2])
 
 # Plot
 miniPCAtable <- pcaTable[, !colnames(pcaTable) %in% c("Seq", "Fastq1", "Fastq2", "kallisto_file")]

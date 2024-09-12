@@ -82,18 +82,21 @@ rule summary_qc:
 
 ensemblTable = pathToReferenceDataAndPipelines + "genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38_genes_transcripts_release-105.txt"
 
+sampleTableToOpen = "config/project_config.yaml"
+
+kallistoPath = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO"
+
 rule plots:
     input:
-        "resources/create_folders.txt"
+        f"{outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_BAM{aName}_data/kallisto_alignment.txt"
     output:
         # f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
         f"/resources/{date_str}_plots_made.txt"
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
-        echo {ensemblTable}
         touch resources/{date_str}_plots_made.txt
-        echo Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_3.R {ensemblTable} 
+        echo Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf"
         """
 
 # "Rscript --vanilla "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_3.R "+ensemblTable+" "+options.infoRun+" "+outDir+"/KALLISTO "+outDir+"/MULTIQC/"+date_str+"_pipeline_fastq_RNAseq_PCAs.pdf"

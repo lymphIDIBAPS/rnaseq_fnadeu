@@ -2,10 +2,8 @@
 # Derived from pipeline_fastq_RNAseq_3.R by Ferran Nadeu
 args = commandArgs(trailingOnly=TRUE)
 ensemblToOpen <- args[1]
-# sampleTableToOpen <- args[2]
-sampleTableToOpen <- "config/project_config.yaml"
-# kallistoPath <- args[3]
-kallistoPath <- "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO"
+sampleTableToOpen <- args[2]
+kallistoPath <- args[3]
 outfile <- args[4]
 
 ### Libraries
@@ -38,6 +36,10 @@ sample_table$kallisto_file <- kallistoFilesToOpen[match(sample_table$sample_name
 ### Import, normalized counts and calculate PCA
 
 # Import using tximport package
+dir <- system.file("extdata", package = "tximportData")
+list.files(dir)
+tx2gene <- read_csv(file.path(dir, "tx2gene.gencode.v27.csv"))
+head(tx2gene)
 txi <- tximport(files = sample_table$kallisto_file, type = "kallisto", txIn = TRUE, txOut = FALSE, tx2gene = tx2gene)
 
 # DESeq
