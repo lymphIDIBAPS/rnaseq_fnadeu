@@ -42,6 +42,8 @@ elif config["genes"] == "ncRNA":
 else: 
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
 
+# Extract sample names and paths to reads
+samples = pep.sample_table
 
 # Functions to extract flag values
 
@@ -64,9 +66,10 @@ def get_transcription_strand(transcription_strand):
     else:
         return "NONE"
 
-# Extract sample names and paths to reads
-samples = pep.sample_table
-
+# Module loads
+"python/3.6.5" "java/10.0.1" "fastqc/0.11.9" 
+"gcc/9.2.0" "zlib/1.2.11" "hdf5/1.10.2" "szip/2.1.1" "kallisto/0.46.1" 
+"star/2.7.8a" "samtools/1.9" "picard/2.24.0" "R/3.5.0"
 
 # Pipeline Rules
 
@@ -83,6 +86,9 @@ rule sortmerna:
         # outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "sortmerna/4.3.6"
     shell:
         """
         mkdir -p {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
@@ -105,6 +111,8 @@ rule multiqc_sortmerna_log:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
+    envmodules:
+        "python/3.6.5"
     run:
         # Define the paths
         logInput_path = input.aligned_log
@@ -135,9 +143,11 @@ rule trimmomatic:
         result = check_trimming(config["tTrimming"])   # Default trimming option
     threads:
         THREADS
+    envmodules:
+        "java/10.0.1"
     shell:
         """
-        trimmomatic PE -threads {threads} -phred33 {params.fastq1} {params.fastq2} \
+        java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar PE -threads {threads} -phred33 {params.fastq1} {params.fastq2} \
         {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
         ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
         """
@@ -154,6 +164,8 @@ rule multiqc_trimmomatic_log:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
+    envmodules:
+        "python/3.6.5"
     run:
         # Define the paths
         logInput_path = input.aligned_log
@@ -181,6 +193,9 @@ rule fastqc:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "fastqc/0.11.9" 
     shell:
         """
         fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {threads} {params.fastq1} {params.fastq2} \
@@ -198,6 +213,8 @@ rule kallisto_index:
         index_out_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
     threads:
         THREADS
+    envmodules:
+        "kallisto/0.46.1"
     shell:
         """
         kallisto index -i {output.index_out_path} --threads={threads} {input.index_path}
@@ -221,6 +238,9 @@ rule kallisto:
         kallisto_ref = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx",
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "kallisto/0.46.1"
     run:
         # Get the strand flag based on the transcription strand
         # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
@@ -246,6 +266,8 @@ rule multiqc_kallisto_log:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
+    envmodules:
+        "python/3.6.5"
     run:
         # Define the paths
         logInput_path = input.kallisto_log
@@ -270,6 +292,9 @@ rule star_genome:
         genomeDir = "resources/STAR/",
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "star/2.7.8a"
     shell:
         """
         mkdir -p resources/STAR
@@ -288,6 +313,9 @@ rule star_map:
         genomeDir = "resources/STAR",
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "star/2.7.8a"
     # log:
     #     "{outDir}/BAM/{sample}_Log.out"
     shell:
@@ -313,6 +341,9 @@ rule samtools:
         log_final_multiqc = "{outDir}/MULTIQC/files/{sample}_Log.final.out",
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "samtools/1.9"
     shell:
         """
         samtools sort -@ {threads} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
@@ -344,8 +375,6 @@ rule generate_md5sum:
         md5sum {input.sorted_bam_bai} > {output.sorted_bam_bai_md5}
         """
 
-
-
 rule collectRNASeqMetrics:
     # This rule fails due to not having the corresponding files
     output:
@@ -355,12 +384,15 @@ rule collectRNASeqMetrics:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         refFlat = "resources/refFlat.txt",
         ribosomal_intervals = "resources/Homo_sapiens_assembly38_noALT_noHLA_noDecoy_v0_annotation_gencode_v34_rRNA.interval_list"
+    envmodules:
+        "python/3.6.5"
     run:
         # Get the strand flag based on the transcription strand
         # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
         strand_flag = get_transcription_strand(params.transcription_strand)
 
         shell ("""
+        module load picard/2.24.0
         picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
         -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {strand_flag} -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
         """)
@@ -374,6 +406,9 @@ rule samtools_multiqc:
         stats = "{outDir}/MULTIQC/files/{sample}.stats",
     threads:
         THREADS
+    envmodules:
+        "python/3.6.5"
+        "samtools/1.9"
     shell:
         """
         samtools idxstats {input.sorted_bam} > {output.idxstats}

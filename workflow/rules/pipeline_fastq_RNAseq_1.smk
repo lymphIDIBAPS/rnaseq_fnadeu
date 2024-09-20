@@ -30,6 +30,9 @@ rule create_folders:
     output:
         ## The newly created directories
         "resources/create_folders.txt"
+    envmodules:
+        "python/3.6.5"
+        "gcc/9.2.0"
     run:
         # Open the config file to load options
         with open("config/config.yaml", "r") as file:
@@ -68,6 +71,9 @@ rule summary_qc:
         "resources/create_folders.txt"
     output:
         f"resources/{date_str}_MULTIQC_end.txt"
+    envmodules:
+        "python/3.6.5"
+        "gcc/9.2.0"
     shell:
         """
         echo {date_str}
@@ -90,12 +96,17 @@ rule plots:
     input:
         f"{outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_BAM{aName}_data/kallisto_alignment.txt"
     output:
-        # f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
-        f"/resources/{date_str}_plots_made.txt"
+        f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
+        # f"/resources/{date_str}_plots_made.txt"
+    envmodules:
+        "python/3.6.5"
+        "zlib/1.2.11" 
+        "szip/2.1.1"
+        "R/3.5.0"
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
-        touch resources/{date_str}_plots_made.txt
+        touch {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf
         echo Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf"
         """
 
