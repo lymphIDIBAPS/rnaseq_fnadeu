@@ -30,36 +30,13 @@ rule create_folders:
     output:
         ## The newly created directories
         "resources/create_folders.txt"
-    envmodules:
-        "python/3.6.5"
-        "gcc/9.2.0"
-    run:
-        # Open the config file to load options
-        with open("config/config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-
-        # Get current directory
-        currentDir = os.getcwd()
-
-        # Create output directory
-        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
-        os.makedirs(outDir, exist_ok=True)
-
-        # Create subfolders
-        os.makedirs(outDir+"/log", exist_ok=True)
-        os.makedirs(outDir+"/FASTQ", exist_ok=True)
-        os.makedirs(outDir+"/FASTQ_SORTMERNA", exist_ok=True)
-        os.makedirs(outDir+"/FASTQ_TRIMMED", exist_ok=True)
-        os.makedirs(outDir+"/BAM", exist_ok=True)
-        os.makedirs(outDir+"/KALLISTO", exist_ok=True)
-        os.makedirs(outDir+"/MULTIQC_FASTQC", exist_ok=True)
-        os.makedirs(outDir+"/MULTIQC_FASTQC/files", exist_ok=True)
-        os.makedirs(outDir+"/MULTIQC", exist_ok=True)
-        os.makedirs(outDir+"/MULTIQC/files", exist_ok=True)
-
-        # Make create_folders.txt
-        fp = open("resources/create_folders.txt", 'w')
-        fp.close()
+    params:
+        date_str = date_str,
+        aName = aName,
+    shell:
+        """
+        bash workflow/scripts/create_folders.sh {params.date_str} {params.aName}
+        """
 
 
 ##

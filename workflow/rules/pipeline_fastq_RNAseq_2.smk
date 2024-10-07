@@ -111,8 +111,6 @@ rule multiqc_sortmerna_log:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
-    envmodules:
-        "python/3.6.5"
     run:
         # Define the paths
         logInput_path = input.aligned_log
@@ -164,8 +162,6 @@ rule multiqc_trimmomatic_log:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
-    envmodules:
-        "python/3.6.5"
     run:
         # Define the paths
         logInput_path = input.aligned_log
@@ -238,9 +234,6 @@ rule kallisto:
         kallisto_ref = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx",
     threads:
         THREADS
-    envmodules:
-        "python/3.6.5"
-        "kallisto/0.46.1"
     run:
         # Get the strand flag based on the transcription strand
         # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
@@ -266,8 +259,6 @@ rule multiqc_kallisto_log:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
-    envmodules:
-        "python/3.6.5"
     run:
         # Define the paths
         logInput_path = input.kallisto_log
@@ -384,8 +375,6 @@ rule collectRNASeqMetrics:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         refFlat = "resources/refFlat.txt",
         ribosomal_intervals = "resources/Homo_sapiens_assembly38_noALT_noHLA_noDecoy_v0_annotation_gencode_v34_rRNA.interval_list"
-    envmodules:
-        "python/3.6.5"
     run:
         # Get the strand flag based on the transcription strand
         # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
