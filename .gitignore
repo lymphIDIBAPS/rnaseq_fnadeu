@@ -16,3 +16,6 @@
 # R Stuff
 .Rhistory
 .RData
+
+# PDF
+*.pdf

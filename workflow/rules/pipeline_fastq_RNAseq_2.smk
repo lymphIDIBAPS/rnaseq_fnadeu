@@ -400,7 +400,7 @@ rule samtools_multiqc:
         "samtools/1.9"
     shell:
         """
-        samtools idxstats {input.sorted_bam} > {output.idxstats}
+        samtools idxstats -@ {threads} {input.sorted_bam} > {output.idxstats}
         samtools flagstat -@ {threads} {input.sorted_bam} > {output.flagstat}
         samtools stats -@ {threads} {input.sorted_bam} > {output.stats}
         """

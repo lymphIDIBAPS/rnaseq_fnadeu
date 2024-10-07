@@ -16,43 +16,43 @@ outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aNa
 
 rule all:
     input:
-        # # This line calls for the rule create_folders
-        # "resources/create_folders.txt",
-        # # This line calls for the summary_qc rule
-        # f"resources/{date_str}_MULTIQC_end.txt",
-        # # This line calls for the plots rule
+        # This line calls for the rule create_folders
+        "resources/create_folders.txt",
+        # This line calls for the summary_qc rule
+        f"resources/{date_str}_MULTIQC_end.txt",
+        # This line calls for the plots rule
         f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
         # f"/resources/{date_str}_plots_made.txt",
         # This line calls for the sortmerna rule
-        # expand("{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log", outDir = outDir, sample = samples["sample_name"]),
+        expand("{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log", outDir = outDir, sample = samples["sample_name"]),
         # This line calls for the multiqc_sortmerna_log:
-        # expand("{outDir}/MULTIQC/files/{sample}_aligned.log", outDir = outDir, sample=samples["sample_name"]),
-        # # This lines call for the trimmomatic rule:
-        # expand("{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log", outDir = outDir,  sample = samples["sample_name"]),
-        # # This line calls for the multiqc_trimmomatic_log:
-        # expand("{outDir}/MULTIQC/files/{sample}_trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
-        # # This line calls for the fastqc rule:
-        # expand("{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html", outDir = outDir, sample = samples["sample_name"]),
-        # # This line calls for the kallisto rule:
-        # expand("{outDir}/KALLISTO/{sample}_abundance.h5", outDir = outDir, sample = samples["sample_name"])
-        # # This line calls for the multiqc_kallisto_log:
-        # expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
-        # # This line calls for the rule star_genome:
-        # expand("resources/STAR/transcriptInfo.tab", outDir = outDir, sample=samples["sample_name"]),
-        # # This rule calls for the rule star_map:
-        # expand("{outDir}/BAM/{sample}_Aligned.out.bam", outDir = outDir, sample=samples["sample_name"]),
-        # # This rule calls for the rule samtools:
-        # expand("{outDir}/BAM/{sample}_Aligned.out.sorted.bam", outDir = outDir, sample=samples["sample_name"]),
-        # # This rule calls for the rule generate_md5sum:
-        # expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
-        # # This rule calls for the rule collectRNASeqMetrics:
-        # expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"])
-        # # This line calls for the rule samtools_multiqc:
-        # expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
-        # # This line calls for the rule remove_fastqs:
-        # expand("{outDir}/log/{sample}_removed_fastqs.txt", outDir = outDir, sample = samples["sample_name"]),
-        # # This line calls for the rule remove_bams:
-        # expand("{outDir}/log/{sample}_removed_bams.txt", outDir = outDir, sample = samples["sample_name"]),
+        expand("{outDir}/MULTIQC/files/{sample}_aligned.log", outDir = outDir, sample=samples["sample_name"]),
+        # This lines call for the trimmomatic rule:
+        expand("{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log", outDir = outDir,  sample = samples["sample_name"]),
+        # This line calls for the multiqc_trimmomatic_log:
+        expand("{outDir}/MULTIQC/files/{sample}_trimmomatic.log", outDir = outDir, sample=samples["sample_name"]),
+        # This line calls for the fastqc rule:
+        expand("{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html", outDir = outDir, sample = samples["sample_name"]),
+        # This line calls for the kallisto rule:
+        expand("{outDir}/KALLISTO/{sample}_abundance.h5", outDir = outDir, sample = samples["sample_name"]),
+        # This line calls for the multiqc_kallisto_log:
+        expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
+        # This line calls for the rule star_genome:
+        expand("resources/STAR/transcriptInfo.tab", outDir = outDir, sample=samples["sample_name"]),
+        # This rule calls for the rule star_map:
+        expand("{outDir}/BAM/{sample}_Aligned.out.bam", outDir = outDir, sample=samples["sample_name"]),
+        # This rule calls for the rule samtools:
+        expand("{outDir}/BAM/{sample}_Aligned.out.sorted.bam", outDir = outDir, sample=samples["sample_name"]),
+        # This rule calls for the rule generate_md5sum:
+        expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
+        # This rule calls for the rule collectRNASeqMetrics:
+        expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"]),
+        # This line calls for the rule samtools_multiqc:
+        expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
+        # This line calls for the rule remove_fastqs:
+        expand("{outDir}/log/{sample}_removed_fastqs.txt", outDir = outDir, sample = samples["sample_name"]),
+        # This line calls for the rule remove_bams:
+        expand("{outDir}/log/{sample}_removed_bams.txt", outDir = outDir, sample = samples["sample_name"]),
     shell:
         """
         echo "I just run subrules!"
