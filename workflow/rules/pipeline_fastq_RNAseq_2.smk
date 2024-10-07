@@ -405,10 +405,6 @@ rule samtools_multiqc:
         samtools stats -@ {threads} {input.sorted_bam} > {output.stats}
         """
 
-# bashArguments = "samtools idxstats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".idxstats"
-# bashArguments = "samtools flagstat -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".flagstat"
-# bashArguments = "samtools stats -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam > "+outDir+"/MULTIQC/files/"+sample+".stats"
-
 
 ##
 ## remove intermediate FASTQ and BAM files
@@ -438,14 +434,10 @@ rule remove_bams:
     params:
         aligned_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.bam",
         aligned_sorted_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam",
-    threads:
-        THREADS
     shell:
         """
-        echo {params.aligned_bam} {params.aligned_sorted_bam}
+        echo {params.aligned_bam}* {params.aligned_sorted_bam}*
         touch {output.remove_bams}
-        echo {threads}
         """
-# bashArguments = "rm "+outDir+"/BAM/"+sample+"_Aligned.out.bam* "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam*"
 
 ### DONE WITH RNAseq_2.py
