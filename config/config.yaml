@@ -24,10 +24,10 @@ time: "72"
 analysisName: "TEST"
 
 # Remove intermediate fastqs
-removeFastqs: "yes"
+removeFastqs: "no"
 
-# Remove bam files after QC (yes or no, default = yes)
-removeBams: "yes"
+# Remove bam files after QC (yes or no, default = no)
+removeBams: "no"
 
 # rRNA database for sortmerna (fast or sensitive or default, default = default)
 sortmernaDB: "default"
