@@ -13,7 +13,7 @@ pepfile: "config/project_config.yaml"
 
 outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName
 
-# Checks for the removar or not of intermediate files
+# Checks for the removal or not of intermediate files
 removeFastqs = config["removeFastqs"] == "yes"
 removeBams = config["removeBams"] == "yes"
 
@@ -24,7 +24,7 @@ rule all:
         # # This line calls for the summary_qc rule
         # f"resources/{date_str}_MULTIQC_end.txt",
         # # This line calls for the plots rule
-        # f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
+        f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf",
         # # f"/resources/{date_str}_plots_made.txt",
         # # This line calls for the sortmerna rule
         # expand("{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log", outDir = outDir, sample = samples["sample_name"]),

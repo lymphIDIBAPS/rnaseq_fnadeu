@@ -44,7 +44,7 @@ if config["genes"] == "cDNA":
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.release-105.idx"
 elif config["genes"] == "ncRNA": 
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.ncrna.release-105.idx"
-else: 
+else:
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
 
 # Extract sample names and paths to reads
@@ -82,7 +82,7 @@ rule sortmerna:
     input:
         config_file = "config/project_config.yaml"
     output:
-        "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_SORTMERNA/{sample}_aligned.log",
+        "{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log",
     params:
         forw = lambda wc: samples.loc[wc.sample]["forward"],
         reve = lambda wc: samples.loc[wc.sample]["reverse"],
@@ -108,9 +108,9 @@ rule sortmerna:
 
 rule multiqc_sortmerna_log:
     input:
-        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_SORTMERNA/{sample}_aligned.log",
+        aligned_log = "{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log",
     output:
-        multiqc_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/MULTIQC/files/{sample}_aligned.log"
+        multiqc_log = "{outDir}/MULTIQC/files/{sample}_aligned.log"
     params:
         sample = "{sample}",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
@@ -134,7 +134,7 @@ rule trimmomatic:
     input:
         config_file = "config/project_config.yaml"
     output:
-        log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}_trimmomatic.log"
+        log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log"
     params:
         fastq1=lambda wildcards: samples.loc[wildcards.sample]["forward"],
         fastq2=lambda wildcards: samples.loc[wildcards.sample]["reverse"],
@@ -159,9 +159,9 @@ rule trimmomatic:
 
 rule multiqc_trimmomatic_log:
     input:
-        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}_trimmomatic.log",
+        aligned_log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log",
     output:
-        multiqc_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/MULTIQC/files/{sample}_trimmomatic.log"
+        multiqc_log = "{outDir}/MULTIQC/files/{sample}_trimmomatic.log"
     params:
         sample = "{sample}",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
@@ -181,7 +181,7 @@ rule multiqc_trimmomatic_log:
 
 rule fastqc:
     input: 
-        aligned_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/FASTQ_TRIMMED/{sample}_trimmomatic.log",
+        aligned_log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log",
     output: 
         "{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html"
     params:
@@ -256,7 +256,7 @@ rule kallisto:
 
 rule multiqc_kallisto_log:
     input:
-        kallisto_log = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO/{sample}_kallisto.log"
+        kallisto_log = "{outDir}/KALLISTO/{sample}_kallisto.log"
     output:
         multiqc_log = "{outDir}/MULTIQC/files/{sample}_kallisto.log"
     params:

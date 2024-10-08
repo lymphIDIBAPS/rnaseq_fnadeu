@@ -67,7 +67,7 @@ ensemblTable = pathToReferenceDataAndPipelines + "genome_GRCh38.p13_GCA_00000140
 
 sampleTableToOpen = "config/project_config.yaml"
 
-kallistoPath = "/home/oscar/RNAseq_ferran/20240902_162657_pipeline_fastq_RNAseq_TEST/KALLISTO"
+kallistoPath = outDir+"/KALLISTO"
 
 rule plots:
     input:
