@@ -20,8 +20,8 @@ aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
 outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
 
 # Set path to reference Data and pipelines
-# pathToReferenceDataAndPipelines = config["pathToReferenceDataAndPipelines"]
-pathToReferenceDataAndPipelines = "workflow/scripts/"
+pathToReferenceDataAndPipelines = config["pathToReferenceDataAndPipelines"]
+pathToScripts = "workflow/scripts/"
 
 rule create_folders:
     input:
@@ -63,7 +63,7 @@ rule summary_qc:
 ## Summary plots once all previous jobs are done
 ##
 
-ensemblTable = pathToReferenceDataAndPipelines + "genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38_genes_transcripts_release-105.txt"
+ensemblTable = pathToReferenceDataAndPipelines + "/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38_genes_transcripts_release-105.txt"
 
 sampleTableToOpen = "config/project_config.yaml"
 
@@ -84,7 +84,7 @@ rule plots:
         """
         echo Lines 175 and 176 from RNAseq_1
         touch {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf
-        echo Rscript --vanilla {pathToReferenceDataAndPipelines}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf"
+        echo Rscript --vanilla {pathToScripts}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf
         """
 
 # "Rscript --vanilla "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_3.R "+ensemblTable+" "+options.infoRun+" "+outDir+"/KALLISTO "+outDir+"/MULTIQC/"+date_str+"_pipeline_fastq_RNAseq_PCAs.pdf"
