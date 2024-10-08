@@ -35,6 +35,11 @@ ribosomal_intervals = config["pathToReferenceDataAndPipelines"]+"/data/genome_GR
 rseqc_bed = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.bed"
 THREADS = int(config["cpus"])
 
+if config["adapters"] == "illumina":
+	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/TruSeq3-PE-2.fa"
+elif config["adapters"] == "bioskryb":
+	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/Bioskryb_ResolveOME.fa"
+
 if config["genes"] == "cDNA": 
     kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.release-105.idx"
 elif config["genes"] == "ncRNA": 
@@ -137,8 +142,8 @@ rule trimmomatic:
         unpaired1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_unpaired.fastq.gz",
         paired2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         unpaired2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
-        adapters = "resources/TruSeq3-PE.fa",  # Default adapter file
-        result = check_trimming(config["tTrimming"])   # Default trimming option
+        adapters = adaptersSeq,
+        result = check_trimming(config["tTrimming"])
     threads:
         THREADS
     envmodules:
