@@ -13,6 +13,11 @@ pepfile: "config/project_config.yaml"
 
 outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName
 
+genomeDir = config["pathToReferenceDataAndPipelines"] +"/data/genome_GRCh38.p13_GCA_000001405.28/STAR_100/"
+
+# BAM + QC if specified
+runQC = config["runQC"] == "yes"
+
 # Checks for the removal or not of intermediate files
 removeFastqs = config["removeFastqs"] == "yes"
 removeBams = config["removeBams"] == "yes"
@@ -40,18 +45,19 @@ rule all:
         # expand("{outDir}/KALLISTO/{sample}_abundance.h5", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the multiqc_kallisto_log:
         # expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
-        # # This line calls for the rule star_genome:
-        # expand("resources/STAR/transcriptInfo.tab", outDir = outDir, sample=samples["sample_name"]),
-        # # This rule calls for the rule star_map:
-        # expand("{outDir}/BAM/{sample}_Aligned.out.bam", outDir = outDir, sample=samples["sample_name"]),
-        # # This rule calls for the rule samtools:
-        # expand("{outDir}/BAM/{sample}_Aligned.out.sorted.bam", outDir = outDir, sample=samples["sample_name"]),
-        # # This rule calls for the rule generate_md5sum:
-        # expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]),
-        # # This rule calls for the rule collectRNASeqMetrics:
-        # expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"]),
-        # # This line calls for the rule samtools_multiqc:
-        # expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]),
+        #### Rules below are conditional
+        # This line calls for the rule star_genome:
+        f"'{genomeDir}'/transcriptInfo.tab" if runQC else [],
+        # This rule calls for the rule star_map:
+        expand("{outDir}/BAM/{sample}_Aligned.out.bam", outDir = outDir, sample=samples["sample_name"]) if runQC else [],
+        # This rule calls for the rule samtools:
+        expand("{outDir}/BAM/{sample}_Aligned.out.sorted.bam", outDir = outDir, sample=samples["sample_name"]) if runQC else [],
+        # This rule calls for the rule generate_md5sum:
+        expand("{outDir}/BAM/{sample}_Aligned.out.bam.md5", outDir = outDir, sample = samples["sample_name"]) if runQC else [],
+        # This rule calls for the rule collectRNASeqMetrics:
+        expand("{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics", outDir = outDir, sample = samples["sample_name"]) if runQC else [],
+        # This line calls for the rule samtools_multiqc:
+        expand("{outDir}/MULTIQC/files/{sample}.idxstats", outDir = outDir, sample = samples["sample_name"]) if runQC else [],
         # This line calls for the rule remove_fastqs:
         expand("{outDir}/log/{sample}_removed_fastqs.txt", outDir=outDir, sample=samples["sample_name"]) if removeFastqs else [],
         # This line calls for the rule remove_bams:

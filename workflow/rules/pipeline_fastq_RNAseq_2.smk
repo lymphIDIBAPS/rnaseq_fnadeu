@@ -33,6 +33,11 @@ star_genome = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13
 refFlat = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.refFlat"
 ribosomal_intervals = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GTF/Homo_sapiens.GRCh38.105.ribosomalIntervals"
 rseqc_bed = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.bed"
+fastaFiles = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_DNA/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+gtfFile= config["pathToReferenceDataAndPipelines"] +"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GTF/Homo_sapiens.GRCh38.105.gtf"
+genomeDir = config["pathToReferenceDataAndPipelines"] +"/data/genome_GRCh38.p13_GCA_000001405.28/STAR_100/"
+refFlat = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.refFlat"
+ribosomal_intervals = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GTF/Homo_sapiens.GRCh38.105.ribosomalIntervals"
 THREADS = int(config["cpus"])
 
 # Adapters for Trimmomatic
@@ -133,6 +138,7 @@ rule multiqc_sortmerna_log:
                          .replace(params.fastq2.split("/")[-1], params.sample + ".fq.gz")
                 )
 
+
 rule trimmomatic:
     input:
         config_file = "config/project_config.yaml"
@@ -157,7 +163,7 @@ rule trimmomatic:
         {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
         ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
         """
-    
+
 
 rule multiqc_trimmomatic_log:
     input:
@@ -255,6 +261,7 @@ rule kallisto:
         rm -rf {params.outDir}/KALLISTO/{wildcards.sample}
         """        
 
+
 rule multiqc_kallisto_log:
     input:
         kallisto_log = "{outDir}/KALLISTO/{sample}_kallisto.log"
@@ -277,18 +284,15 @@ rule multiqc_kallisto_log:
                 logKallisto.write(lLine.replace("_sortmerna_1", "").replace("_sortmerna_2", ""))
 
 
-### From here, it is conditional on runQC: yes
+### From here, rules are conditional on runQC: yes
 
 rule star_genome:
-    # I touch the file start_align.txt
-    input: 
-        "resources/start_align.txt"
     output: 
-        "resources/STAR/transcriptInfo.tab"
+        "{genomeDir}/transcriptInfo.tab"
     params:
-        fastaFiles = "resources/STAR/GRCh38.primary_assembly.genome.fa.chr19",
-        gtfFile = "resources/STAR/gencode.v29.primary_assembly.annotation.chr19.gtf",
-        genomeDir = "resources/STAR/",
+        fastaFiles = fastaFiles,
+        gtfFile = gtfFile,
+        genomeDir = genomeDir,
     threads:
         THREADS
     envmodules:
@@ -296,20 +300,21 @@ rule star_genome:
         "star/2.7.8a"
     shell:
         """
-        mkdir -p resources/STAR
-        STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir {params.genomeDir} --genomeFastaFiles {params.fastaFiles} --sjdbGTFfile {params.gtfFile} --genomeSAindexNbases 11
+        mkdir -p {params.genomeDir}
+        STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir {params.genomeDir} --genomeFastaFiles {params.fastaFiles} --sjdbGTFfile {params.gtfFile} --sjdbOverhang 100
         """
+
 
 rule star_map:
     input:
-        "resources/STAR/transcriptInfo.tab"
+        f"{genomeDir}transcriptInfo.tab"
     output: 
         "{outDir}/BAM/{sample}_Aligned.out.bam"
     params:
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        genomeDir = "resources/STAR",
+        genomeDir = genomeDir,
     threads:
         THREADS
     envmodules:
@@ -319,12 +324,11 @@ rule star_map:
     #     "{outDir}/BAM/{sample}_Log.out"
     shell:
         """
-        mkdir -p resources/STAR
+        mkdir -p {params.genomeDir}
         STAR --runThreadN {threads} --genomeDir {params.genomeDir} --readFilesIn {params.pairedFile1} {params.pairedFile2} \
         --readFilesCommand zcat --outFileNamePrefix {params.outDir}/BAM/{wildcards.sample}_ --outSAMtype BAM Unsorted --twopassMode Basic --outBAMcompression 10
         """
-# bashArguments = "STAR --runThreadN "+cpus+" --genomeDir "+star_genome+" --readFilesIn "+pairedFile1+" "+pairedFile2+" --readFilesCommand zcat 
-# --outFileNamePrefix "+outDir+"/BAM/"+sample+"_ --outSAMtype BAM Unsorted --twopassMode Basic --outBAMcompression 10" # not used now compared to Romina's code: --outSAMstrandField intronMotif   
+# not used now compared to Romina's code: --outSAMstrandField intronMotif
 
 
 rule samtools:
@@ -351,12 +355,6 @@ rule samtools:
         cp {params.log_final_out} {params.log_final_multiqc}
         """
 
-# bashArguments = "samtools sort -@ "+cpus+" -m 3G -o "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam "+outDir+"/BAM/"+sample+"_Aligned.out.bam"
-# bashArguments = "samtools index -@ "+cpus+" "+outDir+"/BAM/"+sample+"_Aligned.out.sorted.bam"
-
-# bashArguments = "rm -rf "+outDir+"/BAM/"+sample+"__STARgenome/; rm -rf "+outDir+"/BAM/"+sample+"__STARpass1/"
-# bashArguments = "cp "+outDir+"/BAM/"+sample+"_Log.final.out "+outDir+"/MULTIQC/files/"+sample+"_Log.final.out"
-
 
 rule generate_md5sum:
     input:
@@ -374,15 +372,16 @@ rule generate_md5sum:
         md5sum {input.sorted_bam_bai} > {output.sorted_bam_bai_md5}
         """
 
+
 rule collectRNASeqMetrics:
     # This rule fails due to not having the corresponding files
     output:
         "{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics"
     params:
-        transcription_strand = get_strand_flag(config["TranscriptionStrand"]),
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        refFlat = "resources/refFlat.txt",
-        ribosomal_intervals = "resources/Homo_sapiens_assembly38_noALT_noHLA_noDecoy_v0_annotation_gencode_v34_rRNA.interval_list"
+        transcription_strand = get_transcription_strand(config["TranscriptionStrand"]),
+        refFlat = refFlat,
+        ribosomal_intervals = ribosomal_intervals
     envmodules:
         "picard/2.24.0"
     shell:
@@ -391,6 +390,7 @@ rule collectRNASeqMetrics:
         -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {params.transcription_strand}\
          -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
         """
+
 
 rule samtools_multiqc:
     input:
@@ -447,5 +447,3 @@ rule remove_bams:
         rm {params.aligned_bam}* {params.aligned_sorted_bam}*
         touch {output.remove_bams}
         """
-
-### DONE WITH RNAseq_2.py
