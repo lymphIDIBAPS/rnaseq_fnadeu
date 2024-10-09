@@ -11,7 +11,7 @@ infoRun: ""
 # Working directory
 workDir: "/home/oscar/RNAseq_ferran"
 
-# Perform T-trimming
+# Perform T-trimming (yes or no, default = no)
 tTrimming: "no"
 
 # Adapters to be removed. Choices: illumina or bioskryb; default = illumina
@@ -40,3 +40,6 @@ runQC: "yes"
 
 # Number of cpus per job (default = 20)
 cpus: "24"
+
+# Transcription strand (first, second, unstranded, default = first)
+TranscriptionStrand: "first"

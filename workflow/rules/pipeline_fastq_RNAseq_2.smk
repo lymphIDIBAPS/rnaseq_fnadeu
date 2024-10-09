@@ -35,26 +35,29 @@ ribosomal_intervals = config["pathToReferenceDataAndPipelines"]+"/data/genome_GR
 rseqc_bed = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_GFF3/Homo_sapiens.GRCh38.105.bed"
 THREADS = int(config["cpus"])
 
+# Adapters for Trimmomatic
 if config["adapters"] == "illumina":
 	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/TruSeq3-PE-2.fa"
 elif config["adapters"] == "bioskryb":
 	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/Bioskryb_ResolveOME.fa"
 
+# Index file for kallisto including only cDNA, ncRNA, or both
 if config["genes"] == "cDNA": 
-    kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.release-105.idx"
+    kallisto_index = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.release-105.idx"
 elif config["genes"] == "ncRNA": 
-    kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.ncrna.release-105.idx"
+    kallisto_index = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.ncrna.release-105.idx"
 else:
-    kallisto_ref = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
+    kallisto_index = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
 
 # Extract sample names and paths to reads
 samples = pep.sample_table
 
-# Functions to extract flag values
+### Functions ###
 
 def check_trimming(tTrimming):
     return "HEADCROP:1" if tTrimming == "yes" else ""
 
+# Get the strand flag for rule kallisto based on the transcription strand
 def get_strand_flag(transcription_strand):
     if transcription_strand == "first":
         return "--fr-stranded"
@@ -154,8 +157,7 @@ rule trimmomatic:
         {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
         ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
         """
-
-# java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar
+    
 
 rule multiqc_trimmomatic_log:
     input:
@@ -209,16 +211,16 @@ rule fastqc:
 
 rule kallisto_index:
     input:
-        index_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.fa.gz"
+        kallisto_gen = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.fa.gz"
     output:
-        index_out_path = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
+        index_out_path = kallisto_index
     threads:
         THREADS
     envmodules:
         "kallisto/0.46.1"
     shell:
         """
-        kallisto index -i {output.index_out_path} --threads={threads} {input.index_path}
+        kallisto index -i {output.index_out_path} --threads={threads} {input.kallisto_gen}
         """
 
 
@@ -226,33 +228,32 @@ rule kallisto:
     # This rule does not work with the paired-end file samples
     input:
         "resources/start.txt",
-        "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx"
+        kallisto_index
     output: 
         "{outDir}/KALLISTO/{sample}_abundance.h5",
         log = "{outDir}/KALLISTO/{sample}_kallisto.log"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
-        transcription_strand = lambda wildcards: samples.loc[wildcards.sample]["TranscriptionStrand"],
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        kallisto_ref = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.release-100.idx",
+        transcription_strand = get_strand_flag(config["TranscriptionStrand"]),
+        kallisto_index = kallisto_index,
     threads:
         THREADS
-    run:
-        # Get the strand flag based on the transcription strand
-        # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
-        strand_flag = get_strand_flag(params.transcription_strand)
-        
-        shell ("""
+    envmodules:
+        "kallisto/0.46.1"
+    shell:
+        """
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
         touch {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5
-        kallisto quant -t {threads} -i {params.kallisto_ref} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} 2> {output.log}
+        kallisto quant -t {threads} -i {params.kallisto_index} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} {params.transcription_strand}\
+        2> {output.log}
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.tsv {params.outDir}/KALLISTO/{wildcards.sample}_abundance.tsv
         mv {params.outDir}/KALLISTO/{wildcards.sample}/run_info.json {params.outDir}/KALLISTO/{wildcards.sample}_run_info.json
         rm -rf {params.outDir}/KALLISTO/{wildcards.sample}
-        """)
+        """        
 
 rule multiqc_kallisto_log:
     input:
@@ -275,6 +276,8 @@ rule multiqc_kallisto_log:
             for lLine in logInput:
                 logKallisto.write(lLine.replace("_sortmerna_1", "").replace("_sortmerna_2", ""))
 
+
+### From here, it is conditional on runQC: yes
 
 rule star_genome:
     # I touch the file start_align.txt
@@ -376,20 +379,18 @@ rule collectRNASeqMetrics:
     output:
         "{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics"
     params:
-        transcription_strand = lambda wildcards: samples.loc[wildcards.sample]["TranscriptionStrand"],
+        transcription_strand = get_strand_flag(config["TranscriptionStrand"]),
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         refFlat = "resources/refFlat.txt",
         ribosomal_intervals = "resources/Homo_sapiens_assembly38_noALT_noHLA_noDecoy_v0_annotation_gencode_v34_rRNA.interval_list"
-    run:
-        # Get the strand flag based on the transcription strand
-        # From the kallisto quant I deleted the {strand_flag} because it did not find any pseudoalignment with it
-        strand_flag = get_transcription_strand(params.transcription_strand)
-
-        shell ("""
-        module load picard/2.24.0
+    envmodules:
+        "picard/2.24.0"
+    shell:
+        """
         picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
-        -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {strand_flag} -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
-        """)
+        -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {params.transcription_strand}\
+         -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
+        """
 
 rule samtools_multiqc:
     input:
