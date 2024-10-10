@@ -33,6 +33,8 @@ rule create_folders:
     params:
         date_str = date_str,
         aName = aName,
+    conda:
+        "envs/bash.yaml"
     shell:
         """
         bash workflow/scripts/create_folders.sh {params.date_str} {params.aName}
@@ -76,10 +78,9 @@ rule plots:
         f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
         # f"/resources/{date_str}_plots_made.txt"
     envmodules:
-        "python/3.6.5"
-        "zlib/1.2.11" 
-        "szip/2.1.1"
-        "R/3.5.0"
+        "R/3.5.1"
+    conda:
+        "envs/plots.yaml"
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1

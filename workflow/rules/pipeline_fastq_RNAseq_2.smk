@@ -100,8 +100,9 @@ rule sortmerna:
     threads:
         THREADS
     envmodules:
-        "python/3.6.5"
-        "sortmerna/4.3.6"
+        "sortmerna/4.3.4"
+    conda:
+        "envs/sortmerna.yaml"
     shell:
         """
         mkdir -p {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
@@ -157,12 +158,16 @@ rule trimmomatic:
         THREADS
     envmodules:
         "java/10.0.1"
+    conda:
+        "envs/trimmomatic.yaml"
     shell:
         """
         java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar PE -threads {threads} -phred33 {params.fastq1} {params.fastq2} \
         {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
         ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
         """
+# If we want to run it in a local machine, we need to substitute "java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar"
+# by only "trimmomatic"
 
 
 rule multiqc_trimmomatic_log:
@@ -203,8 +208,9 @@ rule fastqc:
     threads:
         THREADS
     envmodules:
-        "python/3.6.5"
-        "fastqc/0.11.9" 
+        "fastqc/0.11.9"
+    conda:
+        "envs/fastqc.yaml"
     shell:
         """
         fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {threads} {params.fastq1} {params.fastq2} \
@@ -224,6 +230,8 @@ rule kallisto_index:
         THREADS
     envmodules:
         "kallisto/0.46.1"
+    conda:
+        "envs/kallisto.yaml"
     shell:
         """
         kallisto index -i {output.index_out_path} --threads={threads} {input.kallisto_gen}
@@ -249,6 +257,8 @@ rule kallisto:
         THREADS
     envmodules:
         "kallisto/0.46.1"
+    conda:
+        "envs/kallisto.yaml"
     shell:
         """
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
@@ -296,8 +306,9 @@ rule star_genome:
     threads:
         THREADS
     envmodules:
-        "python/3.6.5"
         "star/2.7.8a"
+    conda:
+        "envs/star.yaml"
     shell:
         """
         mkdir -p {params.genomeDir}
@@ -318,8 +329,9 @@ rule star_map:
     threads:
         THREADS
     envmodules:
-        "python/3.6.5"
         "star/2.7.8a"
+    conda:
+        "envs/star.yaml"
     # log:
     #     "{outDir}/BAM/{sample}_Log.out"
     shell:
@@ -345,8 +357,9 @@ rule samtools:
     threads:
         THREADS
     envmodules:
-        "python/3.6.5"
         "samtools/1.9"
+    conda:
+        "envs/samtools.yaml"
     shell:
         """
         samtools sort -@ {threads} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
@@ -384,6 +397,8 @@ rule collectRNASeqMetrics:
         ribosomal_intervals = ribosomal_intervals
     envmodules:
         "picard/2.24.0"
+    conda:
+        "envs/picard.yaml"
     shell:
         """
         picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
@@ -402,8 +417,9 @@ rule samtools_multiqc:
     threads:
         THREADS
     envmodules:
-        "python/3.6.5"
         "samtools/1.9"
+    conda:
+        "envs/samtools.yaml"
     shell:
         """
         samtools idxstats -@ {threads} {input.sorted_bam} > {output.idxstats}
@@ -426,6 +442,8 @@ rule remove_fastqs:
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         unpairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_unpaired.fastq.gz",
         unpairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
+    conda:
+        "envs/bash.yaml"
     shell:
         """
         rm {params.fastq1_sortmerna} {params.fastq2_sortmerna}
@@ -442,6 +460,8 @@ rule remove_bams:
     params:
         aligned_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.bam",
         aligned_sorted_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam",
+    conda:
+        "envs/bash.yaml"
     shell:
         """
         rm {params.aligned_bam}* {params.aligned_sorted_bam}*
