@@ -91,8 +91,8 @@ rule sortmerna:
         forw = lambda wc: samples.loc[wc.sample]["forward"],
         reve = lambda wc: samples.loc[wc.sample]["reverse"],
         sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
-        # outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
+        # outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
     threads:
         THREADS
     envmodules:

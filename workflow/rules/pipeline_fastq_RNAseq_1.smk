@@ -10,8 +10,8 @@ import yaml
 configfile: "config/config.yaml"
 
 # Set date for all rules
-# date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
-date_str = "20240902_162657"
+date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
+# date_str = "20240902_162657"
 
 # Set name for all rules
 aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
@@ -73,9 +73,9 @@ kallistoPath = outDir+"/KALLISTO"
 
 rule plots:
     input:
-        f"{outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_BAM{aName}_data/kallisto_alignment.txt"
+        f"resources/{date_str}_MULTIQC_end.txt"
     output:
-        f"{outDir}'/MULTIQC/'{date_str}'_pipeline_fastq_RNAseq_PCAs.pdf"
+        f"{outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf"
         # f"/resources/{date_str}_plots_made.txt"
     envmodules:
         "R/3.5.1"
