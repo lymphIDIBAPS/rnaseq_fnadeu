@@ -1,0 +1,24 @@
+# Cluster configuration
+
+default-resources:
+    slurm_account:   cli99 # you must use your BSC account 
+    slurm_partition: main
+    runtime: "'7200'" # in seconds; must be not greater than 7200 if we want to run in debug qos
+    nodes: 1
+    tasks: 2
+    cpus_per_task: 8
+    mem_mb_per_cpu: 3G
+    slurm_extra: "'--mail-user=baeza@recerca.clinic.cat --qos=debug'" #You must change the qos to cli to be able to request more resources
+executor: slurm
+immediate-submit: False
+jobs: 100
+keep-going: true
+latency-wait: 120
+max-jobs-per-second: 100
+max-status-checks-per-second: 15
+notemp: true
+printshellcmds: true
+scheduler: greedy
+conda-frontend: "conda"
+#use-conda: true
+verbose: true
