@@ -47,9 +47,11 @@ elif config["adapters"] == "bioskryb":
 	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/Bioskryb_ResolveOME.fa"
 
 # Index file for kallisto including only cDNA, ncRNA, or both
-if config["genes"] == "cDNA": 
+if config["genes"] == "cDNA":
+    kallisto_path = config["pathToReferenceDataAndPipelines"] +"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_cDNA/Homo_sapiens.GRCh38.cdna.all.fa"
     kallisto_index = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.release-105.idx"
-elif config["genes"] == "ncRNA": 
+elif config["genes"] == "ncRNA":
+    kallisto_path = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/ensembl_ncRNA/Homo_sapiens.GRCh38.ncrna.fa"
     kallisto_index = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.ncrna.release-105.idx"
 else:
     kallisto_index = config["pathToReferenceDataAndPipelines"]+"/data/genome_GRCh38.p13_GCA_000001405.28/kallisto/Homo_sapiens.GRCh38.cdna.all.ncrna.release-105.idx"
@@ -98,7 +100,7 @@ rule sortmerna:
     envmodules:
         "sortmerna/4.3.4"
     conda:
-        "envs/sortmerna.yaml"
+        "../envs/sortmerna.yaml"
     shell:
         """
         mkdir -p {params.outDir}/FASTQ_SORTMERNA/{wildcards.sample}
@@ -155,7 +157,7 @@ rule trimmomatic:
     envmodules:
         "java/10.0.1"
     conda:
-        "envs/trimmomatic.yaml"
+        "../envs/trimmomatic.yaml"
     shell:
         """
         java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar PE -threads {threads} -phred33 {params.fastq1} {params.fastq2} \
@@ -206,7 +208,7 @@ rule fastqc:
     envmodules:
         "fastqc/0.11.9"
     conda:
-        "envs/fastqc.yaml"
+        "../envs/fastqc.yaml"
     shell:
         """
         fastqc -o {params.outDir}/MULTIQC_FASTQC/files/ -t {threads} {params.fastq1} {params.fastq2} \
@@ -219,7 +221,7 @@ rule fastqc:
 
 rule kallisto_index:
     input:
-        kallisto_gen = "resources/kallisto/Homo_sapiens.GRCh38.cdna.all.fa.gz"
+        kallisto_gen = kallisto_path
     output:
         index_out_path = kallisto_index
     threads:
@@ -227,7 +229,7 @@ rule kallisto_index:
     envmodules:
         "kallisto/0.46.1"
     conda:
-        "envs/kallisto.yaml"
+        "../envs/kallisto.yaml"
     shell:
         """
         kallisto index -i {output.index_out_path} --threads={threads} {input.kallisto_gen}
@@ -254,7 +256,7 @@ rule kallisto:
     envmodules:
         "kallisto/0.46.1"
     conda:
-        "envs/kallisto.yaml"
+        "../envs/kallisto.yaml"
     shell:
         """
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
@@ -304,7 +306,7 @@ rule star_genome:
     envmodules:
         "star/2.7.8a"
     conda:
-        "envs/star.yaml"
+        "../envs/star.yaml"
     shell:
         """
         mkdir -p {params.genomeDir}
@@ -327,7 +329,7 @@ rule star_map:
     envmodules:
         "star/2.7.8a"
     conda:
-        "envs/star.yaml"
+        "../envs/star.yaml"
     # log:
     #     "{outDir}/BAM/{sample}_Log.out"
     shell:
@@ -344,6 +346,7 @@ rule samtools:
         unsorted_bam = "{outDir}/BAM/{sample}_Aligned.out.bam",
     output:
         sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
+        sorted_bam_bai = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai",
     params:
         outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         star_genome = "{outDir}/BAM/{sample}__STARgenome/",
@@ -355,11 +358,11 @@ rule samtools:
     envmodules:
         "samtools/1.9"
     conda:
-        "envs/samtools.yaml"
+        "../envs/samtools.yaml"
     shell:
         """
         samtools sort -@ {threads} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
-        samtools index -@ {threads} {output.sorted_bam}
+        samtools index -@ {threads} {output.sorted_bam} -o {output.sorted_bam_bai}
         rm -rf {params.star_genome} {params.star_pass1}
         cp {params.log_final_out} {params.log_final_multiqc}
         """
@@ -394,7 +397,7 @@ rule collectRNASeqMetrics:
     envmodules:
         "picard/2.24.0"
     conda:
-        "envs/picard.yaml"
+        "../envs/picard.yaml"
     shell:
         """
         picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
@@ -415,7 +418,7 @@ rule samtools_multiqc:
     envmodules:
         "samtools/1.9"
     conda:
-        "envs/samtools.yaml"
+        "../envs/samtools.yaml"
     shell:
         """
         samtools idxstats -@ {threads} {input.sorted_bam} > {output.idxstats}
@@ -439,7 +442,7 @@ rule remove_fastqs:
         unpairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_unpaired.fastq.gz",
         unpairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_unpaired.fastq.gz",
     conda:
-        "envs/bash.yaml"
+        "../envs/bash.yaml"
     shell:
         """
         rm {params.fastq1_sortmerna} {params.fastq2_sortmerna}
@@ -457,7 +460,7 @@ rule remove_bams:
         aligned_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.bam",
         aligned_sorted_bam = lambda wildcards: f"{outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam",
     conda:
-        "envs/bash.yaml"
+        "../envs/bash.yaml"
     shell:
         """
         rm {params.aligned_bam}* {params.aligned_sorted_bam}*

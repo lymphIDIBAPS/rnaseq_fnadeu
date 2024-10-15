@@ -34,10 +34,11 @@ rule create_folders:
         date_str = date_str,
         aName = aName,
     conda:
-        "envs/bash.yaml"
+        "../envs/bash.yaml"
     shell:
         """
         bash workflow/scripts/create_folders.sh {params.date_str} {params.aName}
+        touch resources/create_folders.txt
         """
 
 
@@ -46,8 +47,6 @@ rule create_folders:
 ## 
 
 rule summary_qc:
-    input:
-        "resources/create_folders.txt"
     output:
         f"resources/{date_str}_MULTIQC_end.txt"
     envmodules:
@@ -56,7 +55,7 @@ rule summary_qc:
     shell:
         """
         echo {date_str}
-        touch "resources/{date_str}_MULTIQC_end.txt"
+        touch resources/{date_str}_MULTIQC_end.txt
         multiqc -f -i "{date_str}_pipeline_fastq_RNAseq_FASTQC{aName}" -b 'Multiqc report for RNAseq pipeline (FASTQC)' -n "{date_str}_pipeline_fastq_RNAseq_FASTQC{aName}" -o "{outDir}/MULTIQC_FASTQC" "{outDir}/MULTIQC_FASTQC/files"
         multiqc -f -i "{date_str}_pipeline_fastq_RNAseq_BAM{aName}" -b 'Multiqc report for RNAseq pipeline (BAM)' -n "{date_str}_pipeline_fastq_RNAseq_BAM{aName}" -o "{outDir}/MULTIQC" "{outDir}/MULTIQC/files"
         """
@@ -75,17 +74,17 @@ rule plots:
     input:
         f"resources/{date_str}_MULTIQC_end.txt"
     output:
-        f"{outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf"
-        # f"/resources/{date_str}_plots_made.txt"
+        # f"{outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf"
+        f"resources/{date_str}_plots_made.txt"
     envmodules:
         "R/3.5.1"
     conda:
-        "envs/plots.yaml"
+        "../envs/plots.yaml"
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
-        touch {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf
-        echo Rscript --vanilla {pathToScripts}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/{date_str}_pipeline_fastq_RNAseq_PCAs.pdf
+        touch {outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
+        echo Rscript --vanilla {pathToScripts}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
         """
 
 # "Rscript --vanilla "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_3.R "+ensemblTable+" "+options.infoRun+" "+outDir+"/KALLISTO "+outDir+"/MULTIQC/"+date_str+"_pipeline_fastq_RNAseq_PCAs.pdf"

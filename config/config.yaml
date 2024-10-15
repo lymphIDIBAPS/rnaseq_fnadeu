@@ -3,13 +3,14 @@
 
 
 # Path to folder reference_data_and_pipelines
-pathToReferenceDataAndPipelines: "resources"
+pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
 
 # "Path to RunInfo.txt containing Sample; Seq; Fastq1\Fastq2; TranscriptionStrand... plus additional metadata
 infoRun: ""
 
 # Working directory
-workDir: "/home/oscar/RNAseq_ferran"
+workDir: "/slgpfs/projects/rcli/rcli186814/rnaseq_fnadeu"
+# workDir: "/home/oscar/RNAseq_ferran"
 
 # Perform T-trimming (yes or no, default = no)
 tTrimming: "no"
@@ -23,7 +24,7 @@ time: "72"
 # Analysis name
 analysisName: "TEST"
 
-# Remove intermediate fastqs
+# Remove intermediate fastqs after QC (yes or no, default = no)
 removeFastqs: "no"
 
 # Remove bam files after QC (yes or no, default = no)
