@@ -86,6 +86,7 @@ def get_transcription_strand(transcription_strand):
 
 rule sortmerna:
     input:
+        folders_created = "resources/create_folders.txt",
         config_file = "config/project_config.yaml"
     output:
         "{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log",
@@ -98,7 +99,7 @@ rule sortmerna:
     threads:
         THREADS
     envmodules:
-        "sortmerna/4.3.4"
+        "sortmerna/4.3.6"
     conda:
         "../envs/sortmerna.yaml"
     shell:
@@ -249,7 +250,7 @@ rule kallisto:
         kallisto_index
     output: 
         "{outDir}/KALLISTO/{sample}_abundance.h5",
-        log = "{outDir}/KALLISTO/{sample}_kallisto.log"
+        log = "{outDir}/KALLISTO/{sample}/kallisto.log"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
@@ -272,7 +273,7 @@ rule kallisto:
     shell:
         """
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
-        touch {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5
+        touch {output.log}
         kallisto quant -t {threads} -i {params.kallisto_index} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} {params.transcription_strand}\
         2> {output.log}
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
@@ -284,9 +285,9 @@ rule kallisto:
 
 rule multiqc_kallisto_log:
     input:
-        kallisto_log = "{outDir}/KALLISTO/{sample}_kallisto.log"
+        kallisto_log = "{outDir}/KALLISTO/{sample}/kallisto.log"
     output:
-        multiqc_log = "{outDir}/MULTIQC/files/{sample}_kallisto.log"
+        multiqc_log = "{outDir}/MULTIQC/files/{sample}/kallisto.log"
     params:
         sample = "{sample}",
         outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
@@ -415,10 +416,11 @@ rule collectRNASeqMetrics:
         "../envs/picard.yaml"
     shell:
         """
-        picard CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
+        java -jar /apps/PICARD/2.24.0/bin/picard.jar CollectRnaSeqMetrics -I {params.outDir}/BAM/{wildcards.sample}_Aligned.out.sorted.bam \
         -O {params.outDir}/MULTIQC/files/{wildcards.sample}.CollectRnaSeqMetrics -REF_FLAT {params.refFlat} -STRAND {params.transcription_strand}\
          -RIBOSOMAL_INTERVALS {params.ribosomal_intervals}
         """
+# If we run on our local computer, we need to substitute "java -jar /apps/PICARD/2.24.0/bin/picard.jar" by picard
 
 
 rule samtools_multiqc:

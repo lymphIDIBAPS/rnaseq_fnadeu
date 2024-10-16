@@ -50,8 +50,8 @@ rule summary_qc:
     output:
         f"resources/{date_str}_MULTIQC_end.txt"
     envmodules:
-        "python/3.6.5",
-        "gcc/9.2.0"
+        "intel/2018.3",
+        "python/3.6.5"
     shell:
         """
         echo {date_str}
