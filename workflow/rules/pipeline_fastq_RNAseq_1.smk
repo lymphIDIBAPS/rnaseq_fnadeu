@@ -10,8 +10,8 @@ import yaml
 configfile: "config/config.yaml"
 
 # Set date for all rules
-date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
-# date_str = "20240902_162657"
+# date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
+date_str = "SARTACHO"
 
 # Set name for all rules
 aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
@@ -47,15 +47,19 @@ rule create_folders:
 ## 
 
 rule summary_qc:
+    input:
+        "resources/create_folders.txt",
+        sortmerna_result = "{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html",
     output:
-        f"resources/{date_str}_MULTIQC_end.txt"
+        summary_out = "{outDir}/MULTIQC_FASTQC/files/{sample}_MULTIQC_end.txt"
+    params:
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
     envmodules:
-        "python/3.6.5",
-        "gcc/9.2.0"
+        "intel/2018.3",
+        "python/3.6.5"
     shell:
         """
-        echo {date_str}
-        touch resources/{date_str}_MULTIQC_end.txt
+        touch {params.outDir}/MULTIQC_FASTQC/files/{wildcards.sample}_MULTIQC_end.txt
         multiqc -f -i "{date_str}_pipeline_fastq_RNAseq_FASTQC{aName}" -b 'Multiqc report for RNAseq pipeline (FASTQC)' -n "{date_str}_pipeline_fastq_RNAseq_FASTQC{aName}" -o "{outDir}/MULTIQC_FASTQC" "{outDir}/MULTIQC_FASTQC/files"
         multiqc -f -i "{date_str}_pipeline_fastq_RNAseq_BAM{aName}" -b 'Multiqc report for RNAseq pipeline (BAM)' -n "{date_str}_pipeline_fastq_RNAseq_BAM{aName}" -o "{outDir}/MULTIQC" "{outDir}/MULTIQC/files"
         """
@@ -72,18 +76,19 @@ kallistoPath = outDir+"/KALLISTO"
 
 rule plots:
     input:
-        f"resources/{date_str}_MULTIQC_end.txt"
+        summary_out = "{outDir}/MULTIQC_FASTQC/files/{sample}_MULTIQC_end.txt"
     output:
-        # f"{outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf"
-        f"resources/{date_str}_plots_made.txt"
+        plots_out = "{outDir}/MULTIQC/{sample}_pipeline_fastq_RNAseq_PCAs.pdf"
     envmodules:
         "R/3.5.1"
+    params:
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
     conda:
         "../envs/plots.yaml"
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
-        touch {outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
+        touch {params.outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
         echo Rscript --vanilla {pathToScripts}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
         """
 

@@ -36,10 +36,9 @@ rule all:
         # # This line calls for the rule create_folders
         "resources/create_folders.txt",
         # # This line calls for the summary_qc rule
-        f"resources/{date_str}_MULTIQC_end.txt",
+        expand("{outDir}/MULTIQC_FASTQC/files/{sample}_MULTIQC_end.txt", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the plots rule
-        # f"{outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf",
-        f"resources/{date_str}_plots_made.txt",
+        expand("{outDir}/MULTIQC/{sample}_pipeline_fastq_RNAseq_PCAs.pdf", outDir = outDir, sample = samples["sample_name"]),
         # This line calls for the sortmerna rule
         expand("{outDir}/FASTQ_SORTMERNA/{sample}_aligned.log", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the multiqc_sortmerna_log:
@@ -53,7 +52,7 @@ rule all:
         # # This line calls for the kallisto rule:
         expand("{outDir}/KALLISTO/{sample}_abundance.h5", outDir = outDir, sample = samples["sample_name"]),
         # # This line calls for the multiqc_kallisto_log:
-        expand("{outDir}/MULTIQC/files/{sample}_kallisto.log", outDir = outDir, sample=samples["sample_name"]),
+        expand("{outDir}/MULTIQC/files/{sample}/kallisto.log", outDir = outDir, sample=samples["sample_name"]),
         #### Rules below are conditional
         # # This line calls for the rule star_genome:
         f"{genomeDir}transcriptInfo.tab" if runQC else [],
