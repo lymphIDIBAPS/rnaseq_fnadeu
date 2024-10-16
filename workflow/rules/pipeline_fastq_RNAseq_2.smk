@@ -120,7 +120,7 @@ rule multiqc_sortmerna_log:
         multiqc_log = "{outDir}/MULTIQC/files/{sample}_aligned.log"
     params:
         sample = "{sample}",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
     run:
@@ -175,7 +175,7 @@ rule multiqc_trimmomatic_log:
         multiqc_log = "{outDir}/MULTIQC/files/{sample}_trimmomatic.log"
     params:
         sample = "{sample}",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
     run:
@@ -202,7 +202,7 @@ rule fastqc:
         fastq2_sortmerna = lambda wildcards: f"{outDir}/FASTQ_SORTMERNA/{wildcards.sample}_sortmerna_2.fq.gz",
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
     threads:
         THREADS
     envmodules:
@@ -254,7 +254,7 @@ rule kallisto:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         transcription_strand = get_strand_flag(config["TranscriptionStrand"]),
         kallisto_index = kallisto_index,
     threads:
@@ -289,7 +289,7 @@ rule multiqc_kallisto_log:
         multiqc_log = "{outDir}/MULTIQC/files/{sample}_kallisto.log"
     params:
         sample = "{sample}",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         fastq1 = lambda wc: samples.loc[wc.sample]["forward"],
         fastq2 = lambda wc: samples.loc[wc.sample]["reverse"],
     run:
@@ -335,7 +335,7 @@ rule star_map:
     params:
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         genomeDir = genomeDir,
     threads:
         THREADS
@@ -362,7 +362,7 @@ rule samtools:
         sorted_bam = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam",
         sorted_bam_bai = "{outDir}/BAM/{sample}_Aligned.out.sorted.bam.bai",
     params:
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         star_genome = "{outDir}/BAM/{sample}__STARgenome/",
         star_pass1 = "{outDir}/BAM/{sample}__STARpass1/",
         log_final_out = "{outDir}/BAM/{sample}_Log.final.out",
@@ -404,7 +404,7 @@ rule collectRNASeqMetrics:
     output:
         "{outDir}/MULTIQC/files/{sample}.CollectRnaSeqMetrics"
     params:
-        outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
         transcription_strand = get_transcription_strand(config["TranscriptionStrand"]),
         refFlat = refFlat,
         ribosomal_intervals = ribosomal_intervals
