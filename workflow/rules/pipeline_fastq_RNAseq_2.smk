@@ -92,7 +92,7 @@ rule sortmerna:
     params:
         forw = lambda wc: samples.loc[wc.sample]["forward"],
         reve = lambda wc: samples.loc[wc.sample]["reverse"],
-        sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta",
+        sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/programs/sortmerna-4.3.4/db/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta",
         # outDir = config["workDir"] + "/" + "20240902_162657_pipeline_fastq_RNAseq" + aName,
         outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
     threads:
@@ -155,7 +155,7 @@ rule trimmomatic:
     threads:
         THREADS
     envmodules:
-        "java/10.0.1"
+        "java/12.0.2"
     conda:
         "../envs/trimmomatic.yaml"
     shell:
@@ -227,6 +227,12 @@ rule kallisto_index:
     threads:
         THREADS
     envmodules:
+        "intel/2018.3",
+        "impi/2018.3",
+        "zlib/1.2.11",
+        "gcc/12.2.0",
+        "hdf5/1.10.2",
+        "szip/2.1.1",
         "kallisto/0.46.1"
     conda:
         "../envs/kallisto.yaml"
@@ -254,6 +260,12 @@ rule kallisto:
     threads:
         THREADS
     envmodules:
+        "intel/2018.3",
+        "impi/2018.3",
+        "zlib/1.2.11",
+        "gcc/12.2.0",
+        "hdf5/1.10.2",
+        "szip/2.1.1",
         "kallisto/0.46.1"
     conda:
         "../envs/kallisto.yaml"
@@ -304,6 +316,7 @@ rule star_genome:
     threads:
         THREADS
     envmodules:
+        "intel/2018.3",
         "star/2.7.8a"
     conda:
         "../envs/star.yaml"
@@ -327,6 +340,7 @@ rule star_map:
     threads:
         THREADS
     envmodules:
+        "intel/2018.3",
         "star/2.7.8a"
     conda:
         "../envs/star.yaml"
@@ -395,6 +409,7 @@ rule collectRNASeqMetrics:
         refFlat = refFlat,
         ribosomal_intervals = ribosomal_intervals
     envmodules:
+        "java/12.0.2",
         "picard/2.24.0"
     conda:
         "../envs/picard.yaml"
