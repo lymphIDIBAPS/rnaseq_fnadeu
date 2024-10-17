@@ -42,9 +42,9 @@ THREADS = int(config["cpus"])
 
 # Adapters for Trimmomatic
 if config["adapters"] == "illumina":
-	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/TruSeq3-PE-2.fa"
+	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/programs/TRIMMOMATIC/adapters/TruSeq3-PE-2.fa"
 elif config["adapters"] == "bioskryb":
-	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/Bioskryb_ResolveOME.fa"
+	adaptersSeq = config["pathToReferenceDataAndPipelines"]+"/programs/TRIMMOMATIC/adapters/Bioskryb_ResolveOME.fa"
 
 # Index file for kallisto including only cDNA, ncRNA, or both
 if config["genes"] == "cDNA":
@@ -192,8 +192,9 @@ rule multiqc_trimmomatic_log:
 
 
 rule fastqc:
-    input: 
-        aligned_log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log",
+    input:
+        "resources/create_folders.txt",
+        trimmomatic_log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log",
     output: 
         "{outDir}/MULTIQC_FASTQC/files/{sample}_sortmerna_1_fastqc.html"
     params:
@@ -246,8 +247,9 @@ rule kallisto_index:
 rule kallisto:
     # This rule does not work with the paired-end file samples
     input:
-        "resources/start.txt",
-        kallisto_index
+        "resources/create_folders.txt",
+        kallisto_index,
+        trimmomatic_log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log"
     output: 
         "{outDir}/KALLISTO/{sample}_abundance.h5",
         log = "{outDir}/KALLISTO/{sample}/kallisto.log"
@@ -274,8 +276,7 @@ rule kallisto:
         """
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
         touch {output.log}
-        kallisto quant -t {threads} -i {params.kallisto_index} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} {params.transcription_strand}\
-        2> {output.log}
+        kallisto quant -t {threads} {params.transcription_strand} -i {params.kallisto_index} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} 2> {output.log}
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.tsv {params.outDir}/KALLISTO/{wildcards.sample}_abundance.tsv
         mv {params.outDir}/KALLISTO/{wildcards.sample}/run_info.json {params.outDir}/KALLISTO/{wildcards.sample}_run_info.json

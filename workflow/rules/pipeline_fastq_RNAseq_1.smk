@@ -11,7 +11,7 @@ configfile: "config/config.yaml"
 
 # Set date for all rules
 # date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
-date_str = "SARTACHO"
+date_str = "2024_DALVARDAO"
 
 # Set name for all rules
 aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
@@ -38,7 +38,6 @@ rule create_folders:
     shell:
         """
         bash workflow/scripts/create_folders.sh {params.date_str} {params.aName}
-        touch resources/create_folders.txt
         """
 
 

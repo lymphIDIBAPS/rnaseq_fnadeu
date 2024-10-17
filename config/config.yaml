@@ -10,7 +10,7 @@ infoRun: ""
 
 # Working directory
 workDir: "/slgpfs/projects/rcli/rcli186814/rnaseq_fnadeu"
-# workDir: "/home/oscar/RNAseq_ferran"
+# if run in computer: "/home/oscar/RNAseq_ferran"
 
 # Perform T-trimming (yes or no, default = no)
 tTrimming: "no"
