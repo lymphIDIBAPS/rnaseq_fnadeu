@@ -11,7 +11,7 @@ configfile: "config/config.yaml"
 
 # Set date for all rules
 # date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
-date_str = "2024_DALVARDAO"
+date_str = "2024_25101412"
 
 # Set name for all rules
 aName = "_" + config["analysisName"] if config["analysisName"] != "" else ""
@@ -87,8 +87,8 @@ rule plots:
     shell:
         """
         echo Lines 175 and 176 from RNAseq_1
-        touch {params.outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
-        echo Rscript --vanilla {pathToScripts}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/pipeline_fastq_RNAseq_PCAs.pdf
+        touch {params.outDir}/MULTIQC/{wildcards.sample}_pipeline_fastq_RNAseq_PCAs.pdf
+        echo Rscript --vanilla {pathToScripts}pipeline_fastq_RNAseq_4.R {ensemblTable} {sampleTableToOpen} {kallistoPath} {outDir}/MULTIQC/{wildcards.sample}_pipeline_fastq_RNAseq_PCAs.pdf
         """
 
 # "Rscript --vanilla "+options.pathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_3.R "+ensemblTable+" "+options.infoRun+" "+outDir+"/KALLISTO "+outDir+"/MULTIQC/"+date_str+"_pipeline_fastq_RNAseq_PCAs.pdf"

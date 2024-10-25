@@ -141,7 +141,8 @@ rule multiqc_sortmerna_log:
 
 rule trimmomatic:
     input:
-        config_file = "config/project_config.yaml"
+        config_file = "config/project_config.yaml",
+        create_folders = "resources/create_folders.txt"
     output:
         log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log"
     params:
@@ -156,14 +157,16 @@ rule trimmomatic:
     threads:
         THREADS
     envmodules:
-        "java/12.0.2"
+        "intel/2018.3",
+        "java/10.0.1"
     conda:
         "../envs/trimmomatic.yaml"
     shell:
         """
+        touch {output.log}
         java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar PE -threads {threads} -phred33 {params.fastq1} {params.fastq2} \
         {params.paired1} {params.unpaired1} {params.paired2} {params.unpaired2} \
-        ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result} 2> {output.log}
+        ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 {params.result}
         """
 # If we want to run it in a local machine, we need to substitute "java -jar /apps/TRIMMOMATIC/0.40/trimmomatic-0.40-rc1.jar"
 # by only "trimmomatic"
@@ -208,6 +211,8 @@ rule fastqc:
     threads:
         THREADS
     envmodules:
+        "intel/2018.3",
+        "java/10.0.1",
         "fastqc/0.11.9"
     conda:
         "../envs/fastqc.yaml"
@@ -229,10 +234,10 @@ rule kallisto_index:
     threads:
         THREADS
     envmodules:
+        "gcc/9.2.0",
+        "zlib/1.2.11",
         "intel/2018.3",
         "impi/2018.3",
-        "zlib/1.2.11",
-        "gcc/12.2.0",
         "hdf5/1.10.2",
         "szip/2.1.1",
         "kallisto/0.46.1"
@@ -251,22 +256,23 @@ rule kallisto:
         kallisto_index,
         trimmomatic_log = "{outDir}/FASTQ_TRIMMED/{sample}_trimmomatic.log"
     output: 
-        "{outDir}/KALLISTO/{sample}_abundance.h5",
-        log = "{outDir}/KALLISTO/{sample}/kallisto.log"
+        "{outDir}/KALLISTO/{sample}/abundance.h5",
+        stdout_log = "{outDir}/KALLISTO/{sample}_stout_kallisto.log",
+        sterr_log = "{outDir}/KALLISTO/{sample}_sterr_kallisto.log"
     params:
         fastq1 = lambda wildcards: samples.loc[wildcards.sample]["forward"],
         pairedFile1 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_1_paired.fastq.gz",
         pairedFile2 = lambda wildcards: f"{outDir}/FASTQ_TRIMMED/{wildcards.sample}_sortmerna_2_paired.fastq.gz",
         outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
-        transcription_strand = get_strand_flag(config["TranscriptionStrand"]),
+        # transcription_strand = get_strand_flag(config["TranscriptionStrand"]), {params.transcription_strand} 
         kallisto_index = kallisto_index,
     threads:
         THREADS
     envmodules:
+        "gcc/9.2.0",
+        "zlib/1.2.11",
         "intel/2018.3",
         "impi/2018.3",
-        "zlib/1.2.11",
-        "gcc/12.2.0",
         "hdf5/1.10.2",
         "szip/2.1.1",
         "kallisto/0.46.1"
@@ -275,18 +281,30 @@ rule kallisto:
     shell:
         """
         mkdir -p {params.outDir}/KALLISTO/{wildcards.sample}
-        touch {output.log}
-        kallisto quant -t {threads} {params.transcription_strand} -i {params.kallisto_index} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} 2> {output.log}
+        touch {output.stdout_log} {output.sterr_log}
+        kallisto quant -t {threads} -i {params.kallisto_index} -o {params.outDir}/KALLISTO/{wildcards.sample} {params.pairedFile1} {params.pairedFile2} > {output.stdout_log} 2> {output.sterr_log}
+        """
+
+rule kallisto_move:
+    input: 
+        "{outDir}/KALLISTO/{sample}/abundance.h5",
+        log = "{outDir}/KALLISTO/{sample}_stout_kallisto.log"
+    output:
+        "{outDir}/KALLISTO/{sample}_abundance.h5"
+    params:
+        outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName,
+    shell:
+        """
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.h5 {params.outDir}/KALLISTO/{wildcards.sample}_abundance.h5
         mv {params.outDir}/KALLISTO/{wildcards.sample}/abundance.tsv {params.outDir}/KALLISTO/{wildcards.sample}_abundance.tsv
         mv {params.outDir}/KALLISTO/{wildcards.sample}/run_info.json {params.outDir}/KALLISTO/{wildcards.sample}_run_info.json
         rm -rf {params.outDir}/KALLISTO/{wildcards.sample}
-        """        
+        """
 
 
 rule multiqc_kallisto_log:
     input:
-        kallisto_log = "{outDir}/KALLISTO/{sample}/kallisto.log"
+        kallisto_log = "{outDir}/KALLISTO/{sample}_sterr_kallisto.log"
     output:
         multiqc_log = "{outDir}/MULTIQC/files/{sample}/kallisto.log"
     params:
@@ -373,13 +391,14 @@ rule samtools:
     threads:
         THREADS
     envmodules:
+        "intel/2018.3",
         "samtools/1.9"
     conda:
         "../envs/samtools.yaml"
     shell:
         """
         samtools sort -@ {threads} -m 3G -o {output.sorted_bam} {input.unsorted_bam}
-        samtools index -@ {threads} {output.sorted_bam} -o {output.sorted_bam_bai}
+        samtools index -@ {threads} {output.sorted_bam}
         rm -rf {params.star_genome} {params.star_pass1}
         cp {params.log_final_out} {params.log_final_multiqc}
         """
@@ -414,7 +433,7 @@ rule collectRNASeqMetrics:
         refFlat = refFlat,
         ribosomal_intervals = ribosomal_intervals
     envmodules:
-        "java/12.0.2",
+        "java/10.0.1",
         "picard/2.24.0"
     conda:
         "../envs/picard.yaml"
@@ -447,10 +466,7 @@ rule samtools_multiqc:
         samtools stats -@ {threads} {input.sorted_bam} > {output.stats}
         """
 
-
-##
-## remove intermediate FASTQ and BAM files
-##
+# remove intermediate FASTQ and BAM files 
 
 rule remove_fastqs:
     output:
