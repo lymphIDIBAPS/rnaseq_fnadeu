@@ -250,19 +250,33 @@ The cluster configuration file is located in ***/home/oscar/rnaseq/config/slurm/
 ## Configuration of the pipeline
 ### General Configuration
 
-1. Fastq directory paired unmerged: specify the directory containing the paired end unmerged FASTQ files
+1. Pep File: path to a .yaml file, containing the PEP file info and additional metadata about our project.
 
-2. Technical duplicates: specify if we must work with tecnical duplicates or not
+2. Working directory: the directory where our analysis will be run.
 
-3. Sample extension: specify the suffix of the samples
+3. Path to data and pipelines folder: where our data and other resources are located in the cluster.
 
-4. Fastq directory single end: specify the directory containing the single end FASTQ files
+4. Perform T-trimming: cut 1 base from the start of the read in trimmomatic. Yes or no, with default = no.
 
-5. Perform FASTQC: specify if you want to run FASTQC quality control on the samples
+5. Adapters: adapters to be removed by trimmomatic, you can choose between illumina or bioskryb; default = illumina
 
-6. Perform multiQC: specify if you want to run multiQC quality control on the results from FASTQC, sortmerna and trimmomatic. Perform FASTQC must be set to yes.
+6. Analysis name: which name you want your analysis to have
 
-### Trimmomatic
+7. Remove fastqs: remove intermediate fastqs after QC; yes or no, default = no
+
+8. Remove bams: remove bam files after QC; yes or no, default = no
+
+9. rRNA database for sortmerna: which of the rRNA databases do you wish to use; fast or sensitive or default, default = default
+
+10. Index file for kallisto: do ypu want to include only cDNA, ncDNA or both in the index; cDNA or ncRNA or both, default = cDNA
+
+11. runQC: should BAM files be created and QC metrics done; yes or no, default = yes
+
+12. Number of cpus per job: for some rules, specify the amount of cpus to use; default = 20
+
+13. Transcription strand for rules kallisto and collectRNASeqMetrics; first, second, unstranded, default = first
+
+<!-- ### Trimmomatic
 In this section of the configuration file we can adjust the options related with the trimmomatic tool.
 The current defult values are the same as those used by Marta Sureda. 
 
@@ -296,14 +310,14 @@ the base is removed and the next base will be investigated.
 #### MINLEN
 This module removes reads that fall below the specified minimal length. If required, it should normally be after all other processing steps.
 
-1. Minimal length: specifies the minimum length of reads to be kept.
+1. Minimal length: specifies the minimum length of reads to be kept. -->
 
-### Kallisto Single End
+<!-- ### Kallisto Single End
 For the single end mode you need to supply the ``--single`` flag as well as the ``-l`` and ``-s``options: 
 
 ``-l, --fragment-length=DOUBLE``: estimated average fragment length
 
-``-s, --sd=DOUBLE``: estimated standard deviation of fragment length
+``-s, --sd=DOUBLE``: estimated standard deviation of fragment length -->
 
 ## Cluster Configuration
 Remember to check the files in ***/config/slurm/config.yaml*** for the cluster configuration. Review all the items and in case something is not clear you can check [in this website](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html#advanced-resource-specifications) what each term means in the configuration. 
@@ -314,7 +328,7 @@ Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
 
 ## Author
-Developed by [@obaeza16](https://github.com/obaeza16), based on a pipeline written by Marta Sureda.
+Developed by [@obaeza16](https://github.com/obaeza16), based on a pipeline written by Ferran Nadeu.
 
 Mantained by [Lymphoid neoplasms program, IDIBAPS](https://www.clinicbarcelona.org/en/idibaps/programs/lymphoid-neoplasms-programme) for Ferran Nadeu. 
 

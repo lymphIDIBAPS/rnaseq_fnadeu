@@ -2,24 +2,21 @@
 ### Arguments
 
 
-# Path to folder reference_data_and_pipelines
-pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
-
-# "Path to RunInfo.txt containing Sample; Seq; Fastq1\Fastq2; TranscriptionStrand... plus additional metadata
-infoRun: ""
+# Path to project_config.yaml containing PEP file info plus additional metadata
+PepFile: "config/project_config.yaml"
 
 # Working directory
 workDir: "/slgpfs/projects/rcli/rcli186814/rnaseq_fnadeu"
 # if run in computer: "/home/oscar/RNAseq_ferran"
+
+# Path to folder reference_data_and_pipelines
+pathToReferenceDataAndPipelines: "/slgpfs/projects/cli79/reference_data_and_pipelines"
 
 # Perform T-trimming (yes or no, default = no)
 tTrimming: "no"
 
 # Adapters to be removed. Choices: illumina or bioskryb; default = illumina
 adapters: "illumina"
-
-# Maximum execution time (in hours)
-time: "72"
 
 # Analysis name
 analysisName: "TEST"
@@ -40,7 +37,7 @@ genes: "cDNA"
 runQC: "yes"
 
 # Number of cpus per job (default = 20)
-cpus: "24"
+cpus: "20"
 
 # Transcription strand (first, second, unstranded, default = first)
 TranscriptionStrand: "first"

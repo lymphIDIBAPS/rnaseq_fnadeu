@@ -9,23 +9,13 @@ import peppy
 import pandas as pd
 
 # PEP file with info on our project
-pepfile: "config/project_config.yaml"
+pepfile: config["PepFile"]
 
 # Open configfile to access arguments
 configfile: "config/config.yaml"
 
 
-## Now Ferran does the scripting for the cluster, I will do it in a config file for the cluster
-## Prepare and submit job script for each sample
-## The command sent to each job is the following:
-##
-## comm = "python "+options.apathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_2.py 
-## -p "+options.apathToReferenceDataAndPipelines+" -o "+outDir+" -s "+sample+" -F1 "+fq1+" -F2 "+fq2+" 
-## -TS "+strand+" -tT "+options.tTrimming+" -ad "+options.adapters+" -r "+options.removeFastqs+" -rb "+options.removeBams+" 
-## -sortmernaDB "+options.sortmernaDB+" -g "+options.agenes+" -qc "+options.runQC+" -@ "+options.cpus
-
-
-# 0) define variables and files
+# Define variables and files
 
 sortmerna = config["pathToReferenceDataAndPipelines"]+"/programs/sortmerna-4.3.4/bin/sortmerna"
 sortmerna_db = config["pathToReferenceDataAndPipelines"]+"/programs/sortmerna-4.3.4/db/smr_v4.3_"+config["sortmernaDB"]+"_db.fasta"
@@ -73,6 +63,7 @@ def get_strand_flag(transcription_strand):
     else:
         return ""
 
+# Get the strand flag for rule collectRNASeqMetrics
 def get_transcription_strand(transcription_strand):
     if transcription_strand == "first":
         return "FIRST_READ_TRANSCRIPTION_STRAND"

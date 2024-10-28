@@ -23,6 +23,15 @@ outDir = config["workDir"] + "/" + date_str + "_pipeline_fastq_RNAseq" + aName
 pathToReferenceDataAndPipelines = config["pathToReferenceDataAndPipelines"]
 pathToScripts = "workflow/scripts/"
 
+## Now Ferran does the scripting for the cluster, I will do it in a config file for the cluster
+## Prepare and submit job script for each sample
+## The command sent to each job is the following:
+##
+## comm = "python "+options.apathToReferenceDataAndPipelines+"/RNAseq/pipeline_fastq_RNAseq_2.py 
+## -p "+options.apathToReferenceDataAndPipelines+" -o "+outDir+" -s "+sample+" -F1 "+fq1+" -F2 "+fq2+" 
+## -TS "+strand+" -tT "+options.tTrimming+" -ad "+options.adapters+" -r "+options.removeFastqs+" -rb "+options.removeBams+" 
+## -sortmernaDB "+options.sortmernaDB+" -g "+options.agenes+" -qc "+options.runQC+" -@ "+options.cpus
+
 rule create_folders:
     input:
         ## Some input

@@ -9,7 +9,7 @@ include: "rules/pipeline_fastq_RNAseq_1.smk"
 include: "rules/pipeline_fastq_RNAseq_2.smk"
 
 # PEP file with info on our project
-pepfile: "config/project_config.yaml"
+pepfile: config["PepFile"]
 
 # Set date for all rules
 # date_str = "20240902_162657"
