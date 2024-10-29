@@ -33,9 +33,6 @@ pathToScripts = "workflow/scripts/"
 ## -sortmernaDB "+options.sortmernaDB+" -g "+options.agenes+" -qc "+options.runQC+" -@ "+options.cpus
 
 rule create_folders:
-    input:
-        ## Some input
-        "resources/start.txt"
     output:
         ## The newly created directories
         "resources/create_folders.txt"
