@@ -12,7 +12,8 @@ include: "rules/pipeline_fastq_RNAseq_2.smk"
 pepfile: config["PepFile"]
 
 # Set date for all rules
-# date_str = "20240902_162657"
+# Not currenly implemented, it gives errors at the cluster level
+# Currently set in (workflow/rules/pipeline_fastq_RNAseq_1.smk)
 # date_str = time.strftime("%Y/%m/%d_%H/%M/%S").replace("/","")
 
 # Set name for all rules
